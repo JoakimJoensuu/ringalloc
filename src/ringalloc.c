@@ -107,11 +107,6 @@ void ringalloc_reset(struct ringalloc *ringalloc) {
   ringalloc->live_cnt = 0;
 }
 
-size_t ringalloc_live_cnt(const struct ringalloc *ringalloc) {
-  if (ringalloc == nullptr) abort();
-  return ringalloc->live_cnt;
-}
-
 void *ringalloc_alloc(struct ringalloc *ringalloc, size_t size) {
   size_t block = 0;
   size_t offset = 0;

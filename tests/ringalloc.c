@@ -38,21 +38,18 @@ Ensure(alloc_and_free_oldest) {
   uint8_t expect[SMALL_LEN];
 
   assert_that(ringalloc, is_non_null);
-  assert_that(ringalloc_live_cnt(ringalloc), is_equal_to(0));
   first = ringalloc_alloc(ringalloc, SMALL_LEN);
   second = ringalloc_alloc(ringalloc, SMALL_LEN);
   assert_that(first, is_non_null);
   assert_that(second, is_non_null);
   assert_that(first, is_not_equal_to(second));
-  assert_that(ringalloc_live_cnt(ringalloc), is_equal_to(2));
   memset(first, FILL_A, SMALL_LEN);
   memset(second, FILL_B, SMALL_LEN);
   ringalloc_free(ringalloc);
-  assert_that(ringalloc_live_cnt(ringalloc), is_equal_to(1));
   memset(expect, FILL_B, sizeof expect);
   assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
   ringalloc_free(ringalloc);
-  assert_that(ringalloc_live_cnt(ringalloc), is_equal_to(0));
+  assert_that(ringalloc_alloc(ringalloc, SMALL_LEN), is_non_null);
 }
 
 Ensure(realloc_newest_only) {
@@ -117,7 +114,7 @@ Ensure(wrap_reuses_oldest) {
   memset(wrapped, FILL_C, BLOCK_LEN);
   memset(expect, FILL_B, sizeof expect);
   assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
-  assert_that(ringalloc_live_cnt(ringalloc), is_equal_to(2));
+  assert_that(ringalloc_alloc(ringalloc, BLOCK_LEN), is_null);
 }
 
 Ensure(reset_drops_live) {
@@ -130,7 +127,6 @@ Ensure(reset_drops_live) {
   assert_that(ringalloc_alloc(ringalloc, SMALL_LEN), is_non_null);
   assert_that(ringalloc_alloc(ringalloc, SMALL_LEN), is_non_null);
   ringalloc_reset(ringalloc);
-  assert_that(ringalloc_live_cnt(ringalloc), is_equal_to(0));
   again = ringalloc_alloc(ringalloc, SMALL_LEN);
   assert_that(again, is_non_null);
   memset(again, FILL_D, SMALL_LEN);
