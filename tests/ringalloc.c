@@ -16,6 +16,7 @@ enum : size_t {
   GROW_LEN    = 32,
   BLOCK_LEN   = 400,
   STORAGE_LEN = 1024,
+  MISALIGN    = 1,
 };
 
 enum : uint8_t {
@@ -28,6 +29,29 @@ enum : uint8_t {
 Ensure(init_too_small) {
   uint8_t storage[TINY_LEN];
   assert_that(ringalloc_init(storage, sizeof storage), is_null);
+}
+
+Ensure(init_holds_one_item) {
+  uint8_t storage[STORAGE_LEN];
+  size_t cap = 0;
+  struct ringalloc *ringalloc = nullptr;
+
+  for (; cap <= sizeof storage; cap += 1) {
+    ringalloc = ringalloc_init(storage, cap);
+    if (ringalloc != nullptr) break;
+  }
+  assert_that(ringalloc, is_non_null);
+  assert_that(ringalloc_alloc(ringalloc, 0), is_non_null);
+  assert_that(cap, is_greater_than(0));
+  assert_that(ringalloc_init(storage, cap - 1), is_null);
+}
+
+Ensure(init_unaligned) {
+  uint8_t storage[STORAGE_LEN + MISALIGN];
+  struct ringalloc *ringalloc = ringalloc_init(storage + MISALIGN, STORAGE_LEN);
+
+  assert_that(ringalloc, is_non_null);
+  assert_that(ringalloc_alloc(ringalloc, SMALL_LEN), is_non_null);
 }
 
 Ensure(alloc_and_free_oldest) {
@@ -115,6 +139,31 @@ Ensure(wrap_reuses_oldest) {
   memset(expect, FILL_B, sizeof expect);
   assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
   assert_that(ringalloc_alloc(ringalloc, BLOCK_LEN), is_null);
+  ringalloc_free(ringalloc);
+  assert_that(ringalloc_alloc(ringalloc, BLOCK_LEN), is_non_null);
+}
+
+Ensure(realloc_wrapped_newest) {
+  uint8_t storage[STORAGE_LEN];
+  struct ringalloc *ringalloc = ringalloc_init(storage, sizeof storage);
+  uint8_t *first = nullptr;
+  uint8_t *second = nullptr;
+  uint8_t *wrapped = nullptr;
+  uint8_t expect[SMALL_LEN];
+
+  assert_that(ringalloc, is_non_null);
+  first = ringalloc_alloc(ringalloc, BLOCK_LEN);
+  second = ringalloc_alloc(ringalloc, BLOCK_LEN);
+  assert_that(first, is_non_null);
+  assert_that(second, is_non_null);
+  ringalloc_free(ringalloc);
+  wrapped = ringalloc_alloc(ringalloc, BLOCK_LEN);
+  assert_that(wrapped, is_equal_to(first));
+  memset(wrapped, FILL_C, BLOCK_LEN);
+  assert_that(ringalloc_realloc(ringalloc, wrapped, SMALL_LEN), is_equal_to(wrapped));
+  memset(expect, FILL_C, sizeof expect);
+  assert_that(memcmp(wrapped, expect, sizeof expect), is_equal_to(0));
+  assert_that(ringalloc_realloc(ringalloc, wrapped, BLOCK_LEN), is_equal_to(wrapped));
 }
 
 Ensure(reset_drops_live) {
@@ -137,10 +186,13 @@ Ensure(reset_drops_live) {
 int main() {
   auto suite = create_test_suite();
   add_test(suite, init_too_small);
+  add_test(suite, init_holds_one_item);
+  add_test(suite, init_unaligned);
   add_test(suite, alloc_and_free_oldest);
   add_test(suite, realloc_newest_only);
   add_test(suite, realloc_shrink_then_grow);
   add_test(suite, wrap_reuses_oldest);
+  add_test(suite, realloc_wrapped_newest);
   add_test(suite, reset_drops_live);
   return run_test_suite(suite, create_text_reporter());
 }

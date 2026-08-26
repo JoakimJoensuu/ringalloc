@@ -75,6 +75,7 @@ struct ringalloc *ringalloc_init(void *buf, size_t cap) {
   size_t skip = 0;
   size_t after = 0;
   size_t ring_skip = 0;
+  size_t ring_cap = 0;
   struct ringalloc *ringalloc = nullptr;
 
   if (buf == nullptr) abort();
@@ -83,17 +84,19 @@ struct ringalloc *ringalloc_init(void *buf, size_t cap) {
   if (skip > cap || sizeof(struct ringalloc) > cap - skip) {
     return nullptr;
   }
-  ringalloc = (struct ringalloc *)(raw + skip);
-  memset(ringalloc, 0, sizeof *ringalloc);
-  after = skip + sizeof *ringalloc;
+  after = skip + sizeof(struct ringalloc);
   ring_skip = align_gap(raw + after, ALIGN);
   if (ring_skip > cap - after) {
-    ringalloc->base = raw + after;
-    ringalloc->cap = 0;
-  } else {
-    ringalloc->base = raw + after + ring_skip;
-    ringalloc->cap = cap - after - ring_skip;
+    return nullptr;
   }
+  ring_cap = cap - after - ring_skip;
+  if (ring_cap < ITEM_HDR) {
+    return nullptr;
+  }
+  ringalloc = (struct ringalloc *)(raw + skip);
+  memset(ringalloc, 0, sizeof *ringalloc);
+  ringalloc->base = raw + after + ring_skip;
+  ringalloc->cap = ring_cap;
   ringalloc_reset(ringalloc);
   return ringalloc;
 }

@@ -1,7 +1,8 @@
 # Ringalloc
 
 Caller buffer. Ring of variable-size allocations. Free oldest, realloc newest
-only. Wrap when the end is full.
+only. Wrap when the next block does not fit at the end and the start has room.
+Leftover at the end stays unused until wrap is cleared.
 
 ## Build
 
