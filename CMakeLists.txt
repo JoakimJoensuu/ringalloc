@@ -21,3 +21,20 @@ target_compile_options(
             -Wmissing-prototypes
             -Wshadow
             -Wstrict-prototypes)
+
+
+add_library(ringalloc src/ringalloc.c)
+target_include_directories(ringalloc PUBLIC include)
+target_link_libraries(ringalloc PRIVATE ringalloc_warnings)
+
+option(RINGALLOC_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
+option(RINGALLOC_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
+
+if(RINGALLOC_EXAMPLES)
+  add_subdirectory(examples)
+endif()
+
+if(RINGALLOC_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

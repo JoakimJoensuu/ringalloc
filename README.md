@@ -9,6 +9,9 @@ only. Wrap when the end is full.
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
+CMake fetches [cgreen](https://github.com/cgreen-devs/cgreen) when tests are on.
+Examples and tests are off when this project is not the CMake top level.
+
 ## Style
 
 `--experimental-custom-checks` is required for `CustomChecks` in `.clang-tidy`.
