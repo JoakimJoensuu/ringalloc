@@ -3,6 +3,7 @@ Checks: >
   -llvmlibc-restrict-system-libc-headers,
   -altera-*,
   -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -clang-analyzer-security.insecureAPI.strcpy,
   -llvm-header-guard,
   -*-braces-around-statements
 WarningsAsErrors: '*'
