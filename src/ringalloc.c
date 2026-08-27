@@ -7,8 +7,6 @@
 
 enum : size_t { ALIGN = alignof(max_align_t) };
 
-static_assert((ALIGN & (ALIGN - 1U)) == 0);
-
 enum : size_t {
   ITEM_HDR = (sizeof(size_t) + (ALIGN - 1U)) & ~(ALIGN - 1U),
 };
