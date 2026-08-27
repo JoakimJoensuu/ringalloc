@@ -11,7 +11,7 @@ struct ringalloc *ringalloc_init(void *buf, size_t cap);
 void *ringalloc_alloc(struct ringalloc *ringalloc, size_t size);
 /** Oldest allocation only. */
 void ringalloc_free(struct ringalloc *ringalloc, void *ptr);
-/** Newest only. Shrinks or grows in place. nullptr if the buffer has no room. */
+/** Newest only. Shrinks or grows in place. nullptr if the buffer has no room; @p ptr stays valid. */
 void *ringalloc_realloc(struct ringalloc *ringalloc, void *ptr, size_t size);
 /** Drops all live allocations. */
 void ringalloc_reset(struct ringalloc *ringalloc);
