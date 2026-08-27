@@ -7,8 +7,12 @@
 
 enum : size_t { ALIGN = alignof(max_align_t) };
 
+struct item {
+  size_t size;
+};
+
 enum : size_t {
-  ITEM_HDR = (sizeof(size_t) + (ALIGN - 1U)) & ~(ALIGN - 1U),
+  ITEM_HEADER_LEN = (sizeof(struct item) + (ALIGN - 1U)) & ~(ALIGN - 1U),
 };
 
 struct ringalloc {
@@ -21,20 +25,16 @@ struct ringalloc {
   size_t live_cnt;
 };
 
-struct item {
-  size_t size;
-};
-
 static size_t align_up(size_t nbytes, size_t align) {
   return (nbytes + (align - 1U)) & ~(align - 1U);
 }
 
 static bool item_bytes(size_t size, size_t *bytes) {
   size_t total = 0;
-  if (size > ((size_t)-1) - ITEM_HDR) {
+  if (size > ((size_t)-1) - ITEM_HEADER_LEN) {
     return false;
   }
-  total = ITEM_HDR + size;
+  total = ITEM_HEADER_LEN + size;
   if (total > ((size_t)-1) - (ALIGN - 1U)) {
     return false;
   }
@@ -47,7 +47,7 @@ static struct item *item_at(struct ringalloc *ringalloc, size_t offset) {
 }
 
 static void *user_at(struct ringalloc *ringalloc, size_t offset) {
-  return ringalloc->base + offset + ITEM_HDR;
+  return ringalloc->base + offset + ITEM_HEADER_LEN;
 }
 
 static size_t gap_after_head(const struct ringalloc *ringalloc) {
@@ -88,7 +88,7 @@ struct ringalloc *ringalloc_init(void *buf, size_t cap) {
     return nullptr;
   }
   ring_cap = cap - after - ring_skip;
-  if (ring_cap < ITEM_HDR) {
+  if (ring_cap < ITEM_HEADER_LEN) {
     return nullptr;
   }
   ringalloc = (struct ringalloc *)(raw + skip);
