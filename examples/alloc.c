@@ -14,8 +14,8 @@ int main() {
   hello = ringalloc_alloc(ringalloc, sizeof "hello");
   world = ringalloc_alloc(ringalloc, sizeof "world");
   if (hello == nullptr || world == nullptr) return 1;
-  memcpy(hello, "hello", sizeof "hello");
-  memcpy(world, "world", sizeof "world");
+  strcpy(hello, "hello");
+  strcpy(world, "world");
   printf("%s %s\n", hello, world);
   return 0;
 }
