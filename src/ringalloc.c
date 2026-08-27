@@ -141,12 +141,14 @@ void *ringalloc_alloc(struct ringalloc *ringalloc, size_t size) {
   return user_at(ringalloc, offset);
 }
 
-void ringalloc_free(struct ringalloc *ringalloc) {
+void ringalloc_free(struct ringalloc *ringalloc, void *ptr) {
   size_t block = 0;
   struct item *item = nullptr;
 
   if (ringalloc == nullptr) abort();
+  if (ptr == nullptr) abort();
   if (ringalloc->live_cnt == 0) abort();
+  if (ptr != user_at(ringalloc, ringalloc->tail)) abort();
   item = item_at(ringalloc, ringalloc->tail);
   if (!item_bytes(item->size, &block)) abort();
   ringalloc->tail += block;
@@ -169,9 +171,7 @@ void *ringalloc_realloc(struct ringalloc *ringalloc, void *ptr, size_t size) {
   if (ringalloc == nullptr) abort();
   if (ptr == nullptr) abort();
   if (ringalloc->live_cnt == 0) abort();
-  if (ptr != user_at(ringalloc, ringalloc->newest)) {
-    return nullptr;
-  }
+  if (ptr != user_at(ringalloc, ringalloc->newest)) abort();
   item = item_at(ringalloc, ringalloc->newest);
   if (!item_bytes(item->size, &old_block)) abort();
   if (!item_bytes(size, &new_block)) {

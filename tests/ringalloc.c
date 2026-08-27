@@ -69,10 +69,10 @@ Ensure(alloc_and_free_oldest) {
   assert_that(first, is_not_equal_to(second));
   memset(first, FILL_A, SMALL_LEN);
   memset(second, FILL_B, SMALL_LEN);
-  ringalloc_free(ringalloc);
+  ringalloc_free(ringalloc, first);
   memset(expect, FILL_B, sizeof expect);
   assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
-  ringalloc_free(ringalloc);
+  ringalloc_free(ringalloc, second);
   assert_that(ringalloc_alloc(ringalloc, SMALL_LEN), is_non_null);
 }
 
@@ -92,7 +92,7 @@ Ensure(realloc_newest_only) {
   memset(first, FILL_A, GROW_LEN);
   second = ringalloc_alloc(ringalloc, SMALL_LEN);
   assert_that(second, is_non_null);
-  assert_that(ringalloc_realloc(ringalloc, first, GROW_LEN + SMALL_LEN), is_null);
+  assert_that(ringalloc_realloc(ringalloc, second, STORAGE_LEN), is_null);
   grown = ringalloc_realloc(ringalloc, second, GROW_LEN);
   assert_that(grown, is_equal_to(second));
   memset(expect, FILL_A, sizeof expect);
@@ -132,14 +132,14 @@ Ensure(wrap_reuses_oldest) {
   memset(first, FILL_A, BLOCK_LEN);
   memset(second, FILL_B, BLOCK_LEN);
   assert_that(ringalloc_alloc(ringalloc, BLOCK_LEN), is_null);
-  ringalloc_free(ringalloc);
+  ringalloc_free(ringalloc, first);
   wrapped = ringalloc_alloc(ringalloc, BLOCK_LEN);
   assert_that(wrapped, is_equal_to(first));
   memset(wrapped, FILL_C, BLOCK_LEN);
   memset(expect, FILL_B, sizeof expect);
   assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
   assert_that(ringalloc_alloc(ringalloc, BLOCK_LEN), is_null);
-  ringalloc_free(ringalloc);
+  ringalloc_free(ringalloc, second);
   assert_that(ringalloc_alloc(ringalloc, BLOCK_LEN), is_non_null);
 }
 
@@ -156,7 +156,7 @@ Ensure(realloc_wrapped_newest) {
   second = ringalloc_alloc(ringalloc, BLOCK_LEN);
   assert_that(first, is_non_null);
   assert_that(second, is_non_null);
-  ringalloc_free(ringalloc);
+  ringalloc_free(ringalloc, first);
   wrapped = ringalloc_alloc(ringalloc, BLOCK_LEN);
   assert_that(wrapped, is_equal_to(first));
   memset(wrapped, FILL_C, BLOCK_LEN);

@@ -10,8 +10,8 @@ struct ringalloc *ringalloc_init(void *buf, size_t cap);
 /** @return nullptr if the block does not fit or @p size overflows. */
 void *ringalloc_alloc(struct ringalloc *ringalloc, size_t size);
 /** Oldest allocation only. */
-void ringalloc_free(struct ringalloc *ringalloc);
-/** Newest only. Shrinks or grows in place. nullptr if @p ptr is not newest or grow fails. */
+void ringalloc_free(struct ringalloc *ringalloc, void *ptr);
+/** Newest only. Shrinks or grows in place. nullptr if @p size overflows or grow fails. */
 void *ringalloc_realloc(struct ringalloc *ringalloc, void *ptr, size_t size);
 void ringalloc_reset(struct ringalloc *ringalloc);
 
