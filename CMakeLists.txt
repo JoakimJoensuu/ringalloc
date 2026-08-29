@@ -25,6 +25,7 @@ target_compile_options(
 
 add_library(ringalloc src/ringalloc.c)
 target_include_directories(ringalloc PUBLIC include)
+target_compile_options(ringalloc PRIVATE -ffreestanding)
 target_link_libraries(ringalloc PRIVATE ringalloc_warnings)
 
 option(RINGALLOC_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})

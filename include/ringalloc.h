@@ -5,15 +5,32 @@
 
 struct ringalloc;
 
-/** @return Allocator in @p buf, or nullptr if @p buf cannot hold one allocation. */
-struct ringalloc *ringalloc_init(void *buf, size_t cap);
-/** @return nullptr if the buffer has no room. */
-void *ringalloc_alloc(struct ringalloc *ringalloc, size_t size);
-/** Oldest allocation only. */
-void ringalloc_free(struct ringalloc *ringalloc, void *ptr);
-/** Newest only. Shrinks or grows in place. nullptr if no room; @p ptr stays valid. */
-void *ringalloc_realloc(struct ringalloc *ringalloc, void *ptr, size_t size);
-/** Drops all live allocations. */
-void ringalloc_reset(struct ringalloc *ringalloc);
+/**
+ * @return Allocator in @p buffer, or nullptr if @p buffer is too small.
+ */
+struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity);
+
+/** @return address of newly allocated block, or nullptr if no room. */
+void *ra_allocate(struct ringalloc *ringalloc, size_t size);
+
+/**
+ * @param allocation Must be the newest one.
+ *
+ * @return address of the reallocated block, might be a new one, or nullptr if no room; @p
+ * allocation stays valid on failure.
+ */
+void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size);
+
+/**
+ * No-op if @p allocation is nullptr.
+ *
+ * @param allocation Must be the oldest one or nullptr
+ */
+void ra_free(struct ringalloc *ringalloc, void *allocation);
+
+/**
+ * Drops all allocations.
+ */
+void ra_reset(struct ringalloc *ringalloc);
 
 #endif /* RINGALLOC_H */
