@@ -3,7 +3,7 @@
 Caller buffer. Ring of variable-size allocations. Free oldest, reallocate newest.
 For a stream of items that are freed in allocation order.
 
-Wrap when the next allocation or reallocate does not fit at the end and the start has room.
+Wrap when the next allocation or reallocation does not fit at the end and the start has room.
 Leftover at the end stays unused until wrap is cleared.
 
 ## Build
