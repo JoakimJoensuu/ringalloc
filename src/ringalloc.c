@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <string.h>
 
-[[noreturn]] void abort();
-
 struct header {
   size_t size;
 };
@@ -193,7 +191,7 @@ static bool can_reallocate_at_base(const struct ringalloc *ringalloc, size_t pay
 }
 
 struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
-  if (buffer == nullptr) abort();
+  if (buffer == nullptr) unreachable();
 
   size_t state_padding = alignment_padding((uintptr_t)buffer, alignof(struct ringalloc));
   size_t state_padded_size = state_padding + sizeof(struct ringalloc);
@@ -224,7 +222,7 @@ struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
 }
 
 void ra_reset(struct ringalloc *ringalloc) {
-  if (ringalloc == nullptr) abort();
+  if (ringalloc == nullptr) unreachable();
 
   struct ringalloc state = load_state(ringalloc);
   state.first = state.base;
@@ -236,7 +234,7 @@ void ra_reset(struct ringalloc *ringalloc) {
 }
 
 void *ra_allocate(struct ringalloc *ringalloc, size_t size) {
-  if (ringalloc == nullptr) abort();
+  if (ringalloc == nullptr) unreachable();
 
   struct ringalloc state = load_state(ringalloc);
 
@@ -263,14 +261,14 @@ static size_t min(size_t left, size_t right) {
 }
 
 void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) {
-  if (ringalloc == nullptr) abort();
-  if (allocation == nullptr) abort();
+  if (ringalloc == nullptr) unreachable();
+  if (allocation == nullptr) unreachable();
 
   struct ringalloc state = load_state(ringalloc);
-  if (state.empty) abort();
+  if (state.empty) unreachable();
 
   struct frame last = existing_frame(state.last);
-  if (allocation != payload_address(last)) abort();
+  if (allocation != payload_address(last)) unreachable();
 
   struct frame_layout new_layout = frame_layout(size);
   size_t room = frame_length(last.layout) + room_at_next(&state);
@@ -302,14 +300,14 @@ void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) 
 }
 
 void ra_free(struct ringalloc *ringalloc, void *allocation) {
-  if (ringalloc == nullptr) abort();
+  if (ringalloc == nullptr) unreachable();
   if (allocation == nullptr) return;
 
   struct ringalloc state = load_state(ringalloc);
-  if (state.empty) abort();
+  if (state.empty) unreachable();
 
   struct frame first = existing_frame(state.first);
-  if (allocation != payload_address(first)) abort();
+  if (allocation != payload_address(first)) unreachable();
 
   if (has_one_frame(&state)) {
     ra_reset(ringalloc);
