@@ -399,18 +399,19 @@ Ensure(reallocate_wraps_only_live) {
 Ensure(reset_drops_live) {
   unsigned char storage[STORAGE_LENGTH];
   struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
-  unsigned char *again = nullptr;
-  unsigned char expect[SMALL_SIZE];
+  size_t count = 0;
+  size_t again = 0;
 
   assert_that(ringalloc, is_non_null);
-  assert_that(ra_allocate(ringalloc, SMALL_SIZE), is_non_null);
-  assert_that(ra_allocate(ringalloc, SMALL_SIZE), is_non_null);
+  while (ra_allocate(ringalloc, SMALL_SIZE) != nullptr) {
+    count++;
+  }
+  assert_that(count, is_greater_than(0));
   ra_reset(ringalloc);
-  again = ra_allocate(ringalloc, SMALL_SIZE);
-  assert_that(again, is_non_null);
-  memset(again, FILL_D, SMALL_SIZE);
-  memset(expect, FILL_D, sizeof(expect));
-  assert_that(memcmp(again, expect, sizeof(expect)), is_equal_to(0));
+  while (ra_allocate(ringalloc, SMALL_SIZE) != nullptr) {
+    again++;
+  }
+  assert_that(again, is_equal_to(count));
 }
 
 int main() {
