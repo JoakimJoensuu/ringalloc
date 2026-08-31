@@ -164,25 +164,30 @@ static bool can_fit_frame_at_base(const struct ringalloc *ringalloc, size_t payl
                            space_between(ringalloc->base, ringalloc->first));
 }
 
-static unsigned char *aligned_address(unsigned char *address, size_t alignment) {
-  size_t remainder = (uintptr_t)address % alignment;
-  return (remainder == 0) ? address : address + (alignment - remainder);
-}
-
 struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
   if (buffer == nullptr) abort();
 
-  unsigned char *end = buffer + capacity;
-  unsigned char *aligned_start = aligned_address(buffer, alignof(struct ringalloc));
-  if (space_between(aligned_start, end) < sizeof(struct ringalloc)) return nullptr;
+  size_t state_padding = alignment_padding((uintptr_t)buffer, alignof(struct ringalloc));
+  size_t state_padded_size = state_padding + sizeof(struct ringalloc);
+  if (state_padded_size > capacity) {
+    return nullptr;
+  }
+  struct ringalloc *ringalloc = (struct ringalloc *)(buffer + state_padding);
 
-  unsigned char *base =
-      aligned_address(aligned_start + sizeof(struct ringalloc), alignof(max_align_t));
+  size_t remaining_capacity = capacity - state_padded_size;
+  size_t ring_buffer_padding =
+      alignment_padding((uintptr_t)buffer + state_padded_size, alignof(max_align_t));
 
-  struct ringalloc *ringalloc = (struct ringalloc *)aligned_start;
+  size_t ring_buffer_capacity = 0;
+  unsigned char *base = buffer + state_padded_size;
+  if (ring_buffer_padding <= remaining_capacity) {
+    base += ring_buffer_padding;
+    ring_buffer_capacity = remaining_capacity - ring_buffer_padding;
+  }
+
   *ringalloc = (struct ringalloc){
       .base = base,
-      .capacity = space_between(base, end),
+      .capacity = ring_buffer_capacity,
       .first = base,
       .last = base,
       .next = base,
