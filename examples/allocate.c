@@ -8,11 +8,11 @@ int main() {
   struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
 
   if (ringalloc == nullptr) return 1;
-  char *hello = ra_allocate(ringalloc, strlen("hello") + 1);
-  char *world = ra_allocate(ringalloc, strlen("world") + 1);
+  char *hello = ra_allocate(ringalloc, sizeof("hello"));
+  char *world = ra_allocate(ringalloc, sizeof("world"));
   if (hello == nullptr || world == nullptr) return 1;
-  strcpy(hello, "hello");
-  strcpy(world, "world");
+  memcpy(hello, "hello", sizeof("hello"));
+  memcpy(world, "world", sizeof("world"));
   printf("%s %s\n", hello, world);
   return 0;
 }
