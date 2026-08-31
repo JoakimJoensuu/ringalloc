@@ -328,6 +328,41 @@ Ensure(reallocate_wraps_newest) {
   assert_that(memcmp(moved, expect, sizeof expect), is_equal_to(0));
 }
 
+Ensure(reallocate_sole_block_fills_buffer) {
+  unsigned char storage[STORAGE_LENGTH];
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  unsigned char *blocks[64];
+  unsigned char *sole = nullptr;
+  unsigned char *filled = nullptr;
+  size_t count = 0;
+  size_t size = SMALL_SIZE;
+
+  assert_that(ringalloc, is_non_null);
+  blocks[count++] = ra_allocate(ringalloc, SMALL_SIZE);
+  while (count < sizeof blocks / sizeof blocks[0] &&
+         (blocks[count] = ra_allocate(ringalloc, SMALL_SIZE)) != nullptr) {
+    count++;
+  }
+  assert_that(count, is_greater_than(1));
+  for (size_t index = 0; index + 1 < count; index++) {
+    ra_free(ringalloc, blocks[index]);
+  }
+  sole = blocks[count - 1];
+  memset(sole, FILL_A, SMALL_SIZE);
+
+  filled = sole;
+  while (true) {
+    unsigned char *grown = ra_reallocate(ringalloc, filled, size + SMALL_SIZE);
+    if (grown == nullptr) break;
+    filled = grown;
+    size += SMALL_SIZE;
+  }
+  assert_that(filled, is_non_null);
+  assert_that(filled, is_not_equal_to(sole));
+  assert_that(((unsigned char *)filled)[0], is_equal_to(FILL_A));
+  assert_that(ra_allocate(ringalloc, 1), is_null);
+}
+
 Ensure(reallocate_wraps_only_live) {
   unsigned char storage[TIGHT_STORAGE];
   struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
@@ -385,6 +420,7 @@ int main() {
   add_test(suite, wrap_keeps_alignment);
   add_test(suite, reallocate_wrapped_newest);
   add_test(suite, reallocate_wraps_newest);
+  add_test(suite, reallocate_sole_block_fills_buffer);
   add_test(suite, reallocate_wraps_only_live);
   add_test(suite, free_null);
   add_test(suite, reset_drops_live);

@@ -135,7 +135,7 @@ static void *payload_address(struct frame frame) {
   return frame.start + header_length(frame.layout);
 }
 
-static bool wrapped(const struct ringalloc *ringalloc) {
+static bool has_wrapped(const struct ringalloc *ringalloc) {
   return ringalloc->wrap != nullptr;
 }
 
@@ -144,7 +144,7 @@ static bool has_one_frame(const struct ringalloc *ringalloc) {
 }
 
 static size_t room_at_next(const struct ringalloc *ringalloc) {
-  if (!wrapped(ringalloc)) {
+  if (!has_wrapped(ringalloc)) {
     return space_between(ringalloc->next, ringalloc->base + ringalloc->capacity);
   }
   if (ringalloc->next < ringalloc->first) {
@@ -158,10 +158,18 @@ static bool can_fit_frame_at_next(const struct ringalloc *ringalloc, size_t payl
 }
 
 static bool can_fit_frame_at_base(const struct ringalloc *ringalloc, size_t payload_size) {
-  if (wrapped(ringalloc)) return false;
+  if (has_wrapped(ringalloc)) return false;
   if (ringalloc->next <= ringalloc->first) return false;
   return frame_layout_fits(frame_layout(payload_size),
                            space_between(ringalloc->base, ringalloc->first));
+}
+
+static bool can_reallocate_at_base(const struct ringalloc *ringalloc, size_t payload_size) {
+  if (has_wrapped(ringalloc)) return false;
+  if (ringalloc->next <= ringalloc->first) return false;
+  size_t room = has_one_frame(ringalloc) ? ringalloc->capacity
+                                         : space_between(ringalloc->base, ringalloc->first);
+  return frame_layout_fits(frame_layout(payload_size), room);
 }
 
 struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
@@ -245,7 +253,7 @@ void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) 
     return allocation;
   }
 
-  if (!can_fit_frame_at_base(ringalloc, size)) return nullptr;
+  if (!can_reallocate_at_base(ringalloc, size)) return nullptr;
 
   unsigned char *old_start = last.start;
   size_t copy_length = min(size, last.header->size);
@@ -258,7 +266,7 @@ void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) 
   ringalloc->last = ringalloc->base;
 
   struct frame new = frame(ringalloc->last, size);
-  memcpy(payload_address(new), allocation, copy_length);
+  memmove(payload_address(new), allocation, copy_length);
   ringalloc->next = new.start + frame_length(new.layout);
 
   return payload_address(new);
@@ -278,7 +286,7 @@ void ra_free(struct ringalloc *ringalloc, void *allocation) {
   }
 
   ringalloc->first += frame_length(first.layout);
-  if (wrapped(ringalloc) && ringalloc->first == ringalloc->wrap) {
+  if (has_wrapped(ringalloc) && ringalloc->first == ringalloc->wrap) {
     ringalloc->first = ringalloc->base;
     ringalloc->wrap = nullptr;
   }
