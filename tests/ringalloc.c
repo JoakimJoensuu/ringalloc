@@ -19,6 +19,7 @@ enum : size_t {
   STORAGE_LENGTH = 1024,
   TIGHT_STORAGE  = 512,
   MISALIGNMENT   = 1,
+  BLOCK_COUNT    = 64,
 };
 
 enum : unsigned char {
@@ -332,7 +333,7 @@ Ensure(reallocate_wraps_newest) {
 Ensure(reallocate_sole_block_fills_buffer) {
   unsigned char storage[STORAGE_LENGTH];
   struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
-  unsigned char *blocks[64];
+  unsigned char *blocks[BLOCK_COUNT];
   unsigned char *sole = nullptr;
   unsigned char *filled = nullptr;
   size_t count = 0;

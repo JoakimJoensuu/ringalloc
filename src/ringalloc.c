@@ -212,15 +212,14 @@ struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
                                         : buffer + state_padded_size + ring_buffer_padding;
 
   struct ringalloc *handle = (struct ringalloc *)(buffer + state_padding);
-  store_state(handle,
-              &(struct ringalloc){
-                  .base = ring_buffer_base,
-                  .capacity = ring_buffer_capacity,
-                  .first = ring_buffer_base,
-                  .last = ring_buffer_base,
-                  .next = ring_buffer_base,
-                  .empty = true,
-              });
+  store_state(handle, &(struct ringalloc){
+                          .base = ring_buffer_base,
+                          .capacity = ring_buffer_capacity,
+                          .first = ring_buffer_base,
+                          .last = ring_buffer_base,
+                          .next = ring_buffer_base,
+                          .empty = true,
+                      });
   return handle;
 }
 
