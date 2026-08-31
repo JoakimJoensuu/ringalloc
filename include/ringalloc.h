@@ -14,7 +14,7 @@ struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity);
  * @return Address of newly allocated block, suitably aligned for any object with
  *         fundamental alignment, or nullptr if no room.
  */
-void *ra_allocate(struct ringalloc *ringalloc, size_t size);
+void *ra_allocate(struct ringalloc *allocator, size_t size);
 
 /**
  * @param allocation Must be the newest one.
@@ -24,18 +24,18 @@ void *ra_allocate(struct ringalloc *ringalloc, size_t size);
  *         fundamental alignment; might be a new one, or nullptr if no room;
  *         @p allocation stays valid on failure.
  */
-void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size);
+void *ra_reallocate(struct ringalloc *allocator, void *allocation, size_t size);
 
 /**
  * No-op if @p allocation is nullptr.
  *
  * @param allocation Must be the oldest one or nullptr
  */
-void ra_free(struct ringalloc *ringalloc, void *allocation);
+void ra_free(struct ringalloc *allocator, void *allocation);
 
 /**
  * Drops all allocations.
  */
-void ra_reset(struct ringalloc *ringalloc);
+void ra_reset(struct ringalloc *allocator);
 
 #endif /* RINGALLOC_H */

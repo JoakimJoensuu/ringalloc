@@ -5,11 +5,11 @@
 
 int main() {
   unsigned char storage[BUFSIZ];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
 
-  if (ringalloc == nullptr) return 1;
-  char *hello = ra_allocate(ringalloc, sizeof("hello"));
-  char *world = ra_allocate(ringalloc, sizeof("world"));
+  if (allocator == nullptr) return 1;
+  char *hello = ra_allocate(allocator, sizeof("hello"));
+  char *world = ra_allocate(allocator, sizeof("world"));
   if (hello == nullptr || world == nullptr) return 1;
   memcpy(hello, "hello", sizeof("hello"));
   memcpy(world, "world", sizeof("world"));
