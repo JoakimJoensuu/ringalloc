@@ -150,6 +150,7 @@ Ensure(initialize_zero_ring) {
     assert_that(ra_allocate(ringalloc, SMALL_SIZE), is_null);
     return;
   }
+  assert_that(false, is_true);
 }
 
 Ensure(allocate_and_free_oldest) {
