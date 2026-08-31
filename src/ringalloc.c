@@ -25,9 +25,22 @@ struct frame_layout {
 
 struct frame {
   unsigned char *start;
-  struct header *header;
   struct frame_layout layout;
 };
+
+static struct header load_header(const unsigned char *start) {
+  struct header header;
+  memcpy(&header, start, sizeof(header));
+  return header;
+}
+
+static void store_header(unsigned char *start, const struct header *header) {
+  memcpy(start, header, sizeof(*header));
+}
+
+static void store_header_size(unsigned char *start, size_t size) {
+  store_header(start, &(struct header){.size = size});
+}
 
 /**
  * A, B, C and D are allocated:
@@ -107,21 +120,18 @@ static struct frame_layout frame_layout(size_t payload_size) {
 
 static struct frame frame(unsigned char *start, size_t payload_size) {
   struct frame_layout layout = frame_layout(payload_size);
-  struct header *header = (struct header *)start;
-  header->size = layout.payload_size;
+  store_header_size(start, layout.payload_size);
   return (struct frame){
       .start = start,
-      .header = header,
       .layout = layout,
   };
 }
 
 static struct frame existing_frame(unsigned char *start) {
-  struct header *header = (struct header *)start;
+  struct header header = load_header(start);
   return (struct frame){
       .start = start,
-      .header = header,
-      .layout = frame_layout(header->size),
+      .layout = frame_layout(header.size),
   };
 }
 
@@ -266,7 +276,7 @@ void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) 
   struct frame_layout new_layout = frame_layout(size);
   size_t room = frame_length(last.layout) + room_at_next(&state);
   if (frame_layout_fits(new_layout, room)) {
-    last.header->size = new_layout.payload_size;
+    store_header_size(last.start, new_layout.payload_size);
     state.next = last.start + frame_length(new_layout);
     store_state(ringalloc, &state);
     return allocation;
@@ -275,7 +285,7 @@ void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) 
   if (!can_reallocate_at_base(&state, size)) return nullptr;
 
   unsigned char *old_start = last.start;
-  size_t copy_length = min(size, last.header->size);
+  size_t copy_length = min(size, last.layout.payload_size);
 
   if (has_one_frame(&state)) {
     state.first = state.base;
