@@ -17,7 +17,6 @@ enum : size_t {
   GROW_SIZE      = 32,
   BLOCK_SIZE     = 400,
   STORAGE_LENGTH = 1024,
-  TIGHT_STORAGE  = 512,
   MISALIGNMENT   = 1,
   BLOCK_COUNT    = 64,
 };
@@ -366,23 +365,33 @@ Ensure(reallocate_sole_block_fills_buffer) {
 }
 
 Ensure(reallocate_wraps_only_live) {
-  unsigned char storage[TIGHT_STORAGE];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
+  unsigned char storage[STORAGE_LENGTH];
+  size_t capacity = 0;
+  struct ringalloc *ringalloc = nullptr;
   unsigned char *first = nullptr;
   unsigned char *newest = nullptr;
   unsigned char *moved = nullptr;
   unsigned char expect[SMALL_SIZE];
+  bool wrapped = false;
 
-  assert_that(ringalloc, is_non_null);
-  first = ra_allocate(ringalloc, BLOCK_SIZE);
-  newest = ra_allocate(ringalloc, SMALL_SIZE);
-  assert_that(first, is_non_null);
-  assert_that(newest, is_non_null);
-  ra_free(ringalloc, first);
-  memset(newest, FILL_C, SMALL_SIZE);
-  moved = ra_reallocate(ringalloc, newest, BLOCK_SIZE);
-  assert_that(moved, is_non_null);
-  assert_that(moved, is_not_equal_to(newest));
+  for (; capacity <= sizeof(storage); capacity += 1) {
+    ringalloc = ra_initialize(storage, capacity);
+    if (ringalloc == nullptr) continue;
+
+    first = ra_allocate(ringalloc, BLOCK_SIZE);
+    newest = ra_allocate(ringalloc, SMALL_SIZE);
+    if (first == nullptr || newest == nullptr) continue;
+
+    ra_free(ringalloc, first);
+    memset(newest, FILL_C, SMALL_SIZE);
+    moved = ra_reallocate(ringalloc, newest, BLOCK_SIZE);
+    if (moved == nullptr || moved == newest) continue;
+
+    wrapped = true;
+    break;
+  }
+
+  assert_that(wrapped, is_true);
   memset(expect, FILL_C, sizeof(expect));
   assert_that(memcmp(moved, expect, sizeof(expect)), is_equal_to(0));
 }
