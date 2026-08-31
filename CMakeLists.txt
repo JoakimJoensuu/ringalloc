@@ -22,7 +22,6 @@ target_compile_options(
             -Wshadow
             -Wstrict-prototypes)
 
-
 add_library(ringalloc src/ringalloc.c)
 target_include_directories(ringalloc PUBLIC include)
 target_compile_options(ringalloc PRIVATE -ffreestanding)
