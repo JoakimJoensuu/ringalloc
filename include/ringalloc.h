@@ -10,15 +10,18 @@ struct ringalloc;
  */
 struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity);
 
-/** @return address of newly allocated block, or nullptr if no room. */
+/**
+ * @return Address of newly allocated block, naturally aligned for any standard C object,
+ *         or nullptr if no room.
+ */
 void *ra_allocate(struct ringalloc *ringalloc, size_t size);
 
 /**
  * @param allocation Must be the newest one.
  * @param size Zero leaves a live zero-size block; it does not free @p allocation.
  *
- * @return address of the reallocated block, might be a new one, or nullptr if no room; @p
- * allocation stays valid on failure.
+ * @return Address of the reallocated block, naturally aligned for any standard C object;
+ *         might be a new one, or nullptr if no room; @p allocation stays valid on failure.
  */
 void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size);
 
