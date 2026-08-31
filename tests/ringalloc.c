@@ -34,7 +34,7 @@ static bool is_max_aligned(void *address) {
 
 Ensure(allocate_zero) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   void *zero = nullptr;
 
   assert_that(ringalloc, is_non_null);
@@ -45,7 +45,7 @@ Ensure(allocate_zero) {
 
 Ensure(reallocate_zero) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *block = nullptr;
   assert_that(ringalloc, is_non_null);
   block = ra_allocate(ringalloc, SMALL_SIZE);
@@ -57,7 +57,7 @@ Ensure(reallocate_zero) {
 
 Ensure(free_null) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
 
@@ -73,7 +73,7 @@ Ensure(free_null) {
 
 Ensure(initialize_too_small) {
   unsigned char storage[TINY_LENGTH];
-  assert_that(ra_initialize(storage, sizeof storage), is_null);
+  assert_that(ra_initialize(storage, sizeof(storage)), is_null);
 }
 
 Ensure(initialize_smallest) {
@@ -81,7 +81,7 @@ Ensure(initialize_smallest) {
   size_t capacity = 0;
   struct ringalloc *ringalloc = nullptr;
 
-  for (; capacity <= sizeof storage; capacity += 1) {
+  for (; capacity <= sizeof(storage); capacity += 1) {
     ringalloc = ra_initialize(storage, capacity);
     if (ringalloc != nullptr) break;
   }
@@ -102,7 +102,7 @@ Ensure(initialize_unaligned) {
 
 Ensure(allocate_aligned) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   void *first = nullptr;
   void *second = nullptr;
 
@@ -117,7 +117,7 @@ Ensure(allocate_aligned) {
 
 Ensure(allocate_odd_sizes) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *third = nullptr;
@@ -154,7 +154,7 @@ Ensure(initialize_zero_ring) {
 
 Ensure(allocate_and_free_oldest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char expect[SMALL_SIZE];
@@ -168,15 +168,15 @@ Ensure(allocate_and_free_oldest) {
   memset(first, FILL_A, SMALL_SIZE);
   memset(second, FILL_B, SMALL_SIZE);
   ra_free(ringalloc, first);
-  memset(expect, FILL_B, sizeof expect);
-  assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_B, sizeof(expect));
+  assert_that(memcmp(second, expect, sizeof(expect)), is_equal_to(0));
   ra_free(ringalloc, second);
   assert_that(ra_allocate(ringalloc, SMALL_SIZE), is_non_null);
 }
 
 Ensure(reallocate_newest_only) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *grown = nullptr;
@@ -193,13 +193,13 @@ Ensure(reallocate_newest_only) {
   assert_that(ra_reallocate(ringalloc, second, STORAGE_LENGTH), is_null);
   grown = ra_reallocate(ringalloc, second, GROW_SIZE);
   assert_that(grown, is_equal_to(second));
-  memset(expect, FILL_A, sizeof expect);
-  assert_that(memcmp(first, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_A, sizeof(expect));
+  assert_that(memcmp(first, expect, sizeof(expect)), is_equal_to(0));
 }
 
 Ensure(reallocate_failure_keeps_content) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char expect[SMALL_SIZE];
@@ -211,13 +211,13 @@ Ensure(reallocate_failure_keeps_content) {
   assert_that(second, is_non_null);
   memset(second, FILL_B, SMALL_SIZE);
   assert_that(ra_reallocate(ringalloc, second, STORAGE_LENGTH), is_null);
-  memset(expect, FILL_B, sizeof expect);
-  assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_B, sizeof(expect));
+  assert_that(memcmp(second, expect, sizeof(expect)), is_equal_to(0));
 }
 
 Ensure(reallocate_shrink_then_grow) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *block = nullptr;
   unsigned char expect[SMALL_SIZE];
 
@@ -226,15 +226,15 @@ Ensure(reallocate_shrink_then_grow) {
   assert_that(block, is_non_null);
   memset(block, FILL_C, GROW_SIZE);
   assert_that(ra_reallocate(ringalloc, block, SMALL_SIZE), is_equal_to(block));
-  memset(expect, FILL_C, sizeof expect);
-  assert_that(memcmp(block, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_C, sizeof(expect));
+  assert_that(memcmp(block, expect, sizeof(expect)), is_equal_to(0));
   assert_that(ra_reallocate(ringalloc, block, GROW_SIZE), is_equal_to(block));
-  assert_that(memcmp(block, expect, sizeof expect), is_equal_to(0));
+  assert_that(memcmp(block, expect, sizeof(expect)), is_equal_to(0));
 }
 
 Ensure(wrap_reuses_oldest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *wrapped = nullptr;
@@ -252,8 +252,8 @@ Ensure(wrap_reuses_oldest) {
   wrapped = ra_allocate(ringalloc, BLOCK_SIZE);
   assert_that(wrapped, is_equal_to(first));
   memset(wrapped, FILL_C, BLOCK_SIZE);
-  memset(expect, FILL_B, sizeof expect);
-  assert_that(memcmp(second, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_B, sizeof(expect));
+  assert_that(memcmp(second, expect, sizeof(expect)), is_equal_to(0));
   assert_that(ra_allocate(ringalloc, BLOCK_SIZE), is_null);
   ra_free(ringalloc, second);
   assert_that(ra_allocate(ringalloc, BLOCK_SIZE), is_non_null);
@@ -261,7 +261,7 @@ Ensure(wrap_reuses_oldest) {
 
 Ensure(wrap_keeps_alignment) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *wrapped = nullptr;
@@ -281,7 +281,7 @@ Ensure(wrap_keeps_alignment) {
 
 Ensure(reallocate_wrapped_newest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *wrapped = nullptr;
@@ -297,14 +297,14 @@ Ensure(reallocate_wrapped_newest) {
   assert_that(wrapped, is_equal_to(first));
   memset(wrapped, FILL_C, BLOCK_SIZE);
   assert_that(ra_reallocate(ringalloc, wrapped, SMALL_SIZE), is_equal_to(wrapped));
-  memset(expect, FILL_C, sizeof expect);
-  assert_that(memcmp(wrapped, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_C, sizeof(expect));
+  assert_that(memcmp(wrapped, expect, sizeof(expect)), is_equal_to(0));
   assert_that(ra_reallocate(ringalloc, wrapped, BLOCK_SIZE), is_equal_to(wrapped));
 }
 
 Ensure(reallocate_wraps_newest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *newest = nullptr;
   unsigned char *moved = nullptr;
@@ -324,13 +324,13 @@ Ensure(reallocate_wraps_newest) {
   moved = ra_reallocate(ringalloc, newest, BLOCK_SIZE);
   assert_that(moved, is_non_null);
   assert_that(moved, is_not_equal_to(newest));
-  memset(expect, FILL_C, sizeof expect);
-  assert_that(memcmp(moved, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_C, sizeof(expect));
+  assert_that(memcmp(moved, expect, sizeof(expect)), is_equal_to(0));
 }
 
 Ensure(reallocate_sole_block_fills_buffer) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *blocks[64];
   unsigned char *sole = nullptr;
   unsigned char *filled = nullptr;
@@ -339,7 +339,7 @@ Ensure(reallocate_sole_block_fills_buffer) {
 
   assert_that(ringalloc, is_non_null);
   blocks[count++] = ra_allocate(ringalloc, SMALL_SIZE);
-  while (count < sizeof blocks / sizeof blocks[0] &&
+  while (count < sizeof(blocks) / sizeof(blocks[0]) &&
          (blocks[count] = ra_allocate(ringalloc, SMALL_SIZE)) != nullptr) {
     count++;
   }
@@ -365,7 +365,7 @@ Ensure(reallocate_sole_block_fills_buffer) {
 
 Ensure(reallocate_wraps_only_live) {
   unsigned char storage[TIGHT_STORAGE];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *newest = nullptr;
   unsigned char *moved = nullptr;
@@ -381,13 +381,13 @@ Ensure(reallocate_wraps_only_live) {
   moved = ra_reallocate(ringalloc, newest, BLOCK_SIZE);
   assert_that(moved, is_non_null);
   assert_that(moved, is_not_equal_to(newest));
-  memset(expect, FILL_C, sizeof expect);
-  assert_that(memcmp(moved, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_C, sizeof(expect));
+  assert_that(memcmp(moved, expect, sizeof(expect)), is_equal_to(0));
 }
 
 Ensure(reset_drops_live) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
+  struct ringalloc *ringalloc = ra_initialize(storage, sizeof(storage));
   unsigned char *again = nullptr;
   unsigned char expect[SMALL_SIZE];
 
@@ -398,8 +398,8 @@ Ensure(reset_drops_live) {
   again = ra_allocate(ringalloc, SMALL_SIZE);
   assert_that(again, is_non_null);
   memset(again, FILL_D, SMALL_SIZE);
-  memset(expect, FILL_D, sizeof expect);
-  assert_that(memcmp(again, expect, sizeof expect), is_equal_to(0));
+  memset(expect, FILL_D, sizeof(expect));
+  assert_that(memcmp(again, expect, sizeof(expect)), is_equal_to(0));
 }
 
 int main() {

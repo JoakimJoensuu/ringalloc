@@ -73,6 +73,16 @@ struct ringalloc {
   bool empty;
 };
 
+static struct ringalloc load_state(const struct ringalloc *handle) {
+  struct ringalloc state;
+  memcpy(&state, handle, sizeof(state));
+  return state;
+}
+
+static void store_state(struct ringalloc *handle, const struct ringalloc *state) {
+  memcpy(handle, state, sizeof(*state));
+}
+
 static size_t alignment_padding(size_t length, size_t alignment) {
   size_t mask = alignment - 1U;
   return (alignment - (length & mask)) & mask;
@@ -191,44 +201,50 @@ struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
                                         ? buffer + state_padded_size
                                         : buffer + state_padded_size + ring_buffer_padding;
 
-  struct ringalloc *ringalloc = (struct ringalloc *)(buffer + state_padding);
-  *ringalloc = (struct ringalloc){
-      .base = ring_buffer_base,
-      .capacity = ring_buffer_capacity,
-      .first = ring_buffer_base,
-      .last = ring_buffer_base,
-      .next = ring_buffer_base,
-      .empty = true,
-  };
-  return ringalloc;
+  struct ringalloc *handle = (struct ringalloc *)(buffer + state_padding);
+  store_state(handle,
+              &(struct ringalloc){
+                  .base = ring_buffer_base,
+                  .capacity = ring_buffer_capacity,
+                  .first = ring_buffer_base,
+                  .last = ring_buffer_base,
+                  .next = ring_buffer_base,
+                  .empty = true,
+              });
+  return handle;
 }
 
 void ra_reset(struct ringalloc *ringalloc) {
   if (ringalloc == nullptr) abort();
 
-  ringalloc->first = ringalloc->base;
-  ringalloc->last = ringalloc->base;
-  ringalloc->next = ringalloc->base;
-  ringalloc->wrap = nullptr;
-  ringalloc->empty = true;
+  struct ringalloc state = load_state(ringalloc);
+  state.first = state.base;
+  state.last = state.base;
+  state.next = state.base;
+  state.wrap = nullptr;
+  state.empty = true;
+  store_state(ringalloc, &state);
 }
 
 void *ra_allocate(struct ringalloc *ringalloc, size_t size) {
   if (ringalloc == nullptr) abort();
 
-  if (can_fit_frame_at_next(ringalloc, size)) {
-    ringalloc->last = ringalloc->next;
-  } else if (can_fit_frame_at_base(ringalloc, size)) {
-    ringalloc->wrap = ringalloc->next;
-    ringalloc->last = ringalloc->base;
+  struct ringalloc state = load_state(ringalloc);
+
+  if (can_fit_frame_at_next(&state, size)) {
+    state.last = state.next;
+  } else if (can_fit_frame_at_base(&state, size)) {
+    state.wrap = state.next;
+    state.last = state.base;
   } else {
     return nullptr;
   }
 
-  struct frame new = frame(ringalloc->last, size);
+  struct frame new = frame(state.last, size);
 
-  ringalloc->next = new.start + frame_length(new.layout);
-  ringalloc->empty = false;
+  state.next = new.start + frame_length(new.layout);
+  state.empty = false;
+  store_state(ringalloc, &state);
 
   return payload_address(new);
 }
@@ -240,34 +256,38 @@ static size_t min(size_t left, size_t right) {
 void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) {
   if (ringalloc == nullptr) abort();
   if (allocation == nullptr) abort();
-  if (ringalloc->empty) abort();
 
-  struct frame last = existing_frame(ringalloc->last);
+  struct ringalloc state = load_state(ringalloc);
+  if (state.empty) abort();
+
+  struct frame last = existing_frame(state.last);
   if (allocation != payload_address(last)) abort();
 
   struct frame_layout new_layout = frame_layout(size);
-  size_t room = frame_length(last.layout) + room_at_next(ringalloc);
+  size_t room = frame_length(last.layout) + room_at_next(&state);
   if (frame_layout_fits(new_layout, room)) {
     last.header->size = new_layout.payload_size;
-    ringalloc->next = last.start + frame_length(new_layout);
+    state.next = last.start + frame_length(new_layout);
+    store_state(ringalloc, &state);
     return allocation;
   }
 
-  if (!can_reallocate_at_base(ringalloc, size)) return nullptr;
+  if (!can_reallocate_at_base(&state, size)) return nullptr;
 
   unsigned char *old_start = last.start;
   size_t copy_length = min(size, last.header->size);
 
-  if (has_one_frame(ringalloc)) {
-    ringalloc->first = ringalloc->base;
+  if (has_one_frame(&state)) {
+    state.first = state.base;
   } else {
-    ringalloc->wrap = old_start;
+    state.wrap = old_start;
   }
-  ringalloc->last = ringalloc->base;
+  state.last = state.base;
 
-  struct frame new = frame(ringalloc->last, size);
+  struct frame new = frame(state.last, size);
   memmove(payload_address(new), allocation, copy_length);
-  ringalloc->next = new.start + frame_length(new.layout);
+  state.next = new.start + frame_length(new.layout);
+  store_state(ringalloc, &state);
 
   return payload_address(new);
 }
@@ -275,19 +295,22 @@ void *ra_reallocate(struct ringalloc *ringalloc, void *allocation, size_t size) 
 void ra_free(struct ringalloc *ringalloc, void *allocation) {
   if (ringalloc == nullptr) abort();
   if (allocation == nullptr) return;
-  if (ringalloc->empty) abort();
 
-  struct frame first = existing_frame(ringalloc->first);
+  struct ringalloc state = load_state(ringalloc);
+  if (state.empty) abort();
+
+  struct frame first = existing_frame(state.first);
   if (allocation != payload_address(first)) abort();
 
-  if (has_one_frame(ringalloc)) {
+  if (has_one_frame(&state)) {
     ra_reset(ringalloc);
     return;
   }
 
-  ringalloc->first += frame_length(first.layout);
-  if (has_wrapped(ringalloc) && ringalloc->first == ringalloc->wrap) {
-    ringalloc->first = ringalloc->base;
-    ringalloc->wrap = nullptr;
+  state.first += frame_length(first.layout);
+  if (has_wrapped(&state) && state.first == state.wrap) {
+    state.first = state.base;
+    state.wrap = nullptr;
   }
+  store_state(ringalloc, &state);
 }
