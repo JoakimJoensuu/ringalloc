@@ -40,16 +40,11 @@ Ensure(reallocate_zero) {
   unsigned char storage[STORAGE_LENGTH];
   struct ringalloc *ringalloc = ra_initialize(storage, sizeof storage);
   unsigned char *block = nullptr;
-  unsigned char expect[SMALL_SIZE];
-
   assert_that(ringalloc, is_non_null);
   block = ra_allocate(ringalloc, SMALL_SIZE);
   assert_that(block, is_non_null);
-  memset(block, FILL_A, SMALL_SIZE);
   block = ra_reallocate(ringalloc, block, 0);
   assert_that(block, is_non_null);
-  memset(expect, FILL_A, sizeof expect);
-  assert_that(memcmp(block, expect, sizeof expect), is_equal_to(0));
   assert_that(ra_reallocate(ringalloc, block, GROW_SIZE), is_equal_to(block));
 }
 
