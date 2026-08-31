@@ -172,25 +172,24 @@ struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
   if (state_padded_size > capacity) {
     return nullptr;
   }
-  struct ringalloc *ringalloc = (struct ringalloc *)(buffer + state_padding);
 
   size_t remaining_capacity = capacity - state_padded_size;
   size_t ring_buffer_padding =
       alignment_padding((uintptr_t)buffer + state_padded_size, alignof(max_align_t));
 
-  size_t ring_buffer_capacity = 0;
-  unsigned char *base = buffer + state_padded_size;
-  if (ring_buffer_padding <= remaining_capacity) {
-    base += ring_buffer_padding;
-    ring_buffer_capacity = remaining_capacity - ring_buffer_padding;
-  }
+  size_t ring_buffer_capacity =
+      remaining_capacity < ring_buffer_padding ? 0 : remaining_capacity - ring_buffer_padding;
+  unsigned char *ring_buffer_base = remaining_capacity < ring_buffer_padding
+                                        ? buffer + state_padded_size
+                                        : buffer + state_padded_size + ring_buffer_padding;
 
+  struct ringalloc *ringalloc = (struct ringalloc *)(buffer + state_padding);
   *ringalloc = (struct ringalloc){
-      .base = base,
+      .base = ring_buffer_base,
       .capacity = ring_buffer_capacity,
-      .first = base,
-      .last = base,
-      .next = base,
+      .first = ring_buffer_base,
+      .last = ring_buffer_base,
+      .next = ring_buffer_base,
       .empty = true,
   };
   return ringalloc;
