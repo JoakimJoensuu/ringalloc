@@ -15,6 +15,7 @@ void *ra_allocate(struct ringalloc *ringalloc, size_t size);
 
 /**
  * @param allocation Must be the newest one.
+ * @param size Zero leaves a live zero-size block; it does not free @p allocation.
  *
  * @return address of the reallocated block, might be a new one, or nullptr if no room; @p
  * allocation stays valid on failure.
