@@ -51,3 +51,7 @@ Run and pass the checks in [README.md](README.md#style).
 ## Commits and pull requests
 
 Do not attribute a commit or pull request to a tool or agent.
+
+After pushing to a branch with an open pull request, ask whether to update
+the title and body to match the current diff. Do not update them without
+confirmation unless the user asked.
