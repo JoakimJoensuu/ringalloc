@@ -4,8 +4,7 @@ Do not restate language or protocol standards.
 
 ## Language
 
-Library source is ISO C23, freestanding. Examples and tests are hosted ISO C23.
-No extensions.
+Library source is ISO C23. No extensions.
 
 Cast only when there is no implicit conversion, and only when that is the
 most readable way.

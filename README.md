@@ -6,6 +6,11 @@ For a stream of items that are freed in allocation order.
 Wrap when the next allocation or reallocation does not fit at the end and the start has room.
 Leftover at the end stays unused until wrap is cleared.
 
+Freestanding library (almost): no heap; a caller-provided buffer holds the
+allocator and all allocations. Targets a flat address space. Object pointers
+convert to `uintptr_t` and back without changing the address, and low bits
+reflect byte alignment.
+
 ## Build
 
 ```sh
