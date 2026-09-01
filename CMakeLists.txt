@@ -21,15 +21,16 @@ target_compile_options(
             -Wmissing-prototypes
             -Wshadow
             -Wstrict-prototypes)
+add_library(ringalloc_sanitize INTERFACE)
 if(PROJECT_IS_TOP_LEVEL AND (CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU"))
-  target_compile_options(ringalloc_warnings INTERFACE -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
-  target_link_options(ringalloc_warnings INTERFACE -fsanitize=address,undefined)
+  target_compile_options(ringalloc_sanitize INTERFACE -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
+  target_link_options(ringalloc_sanitize INTERFACE -fsanitize=address,undefined)
 endif()
 
 add_library(ringalloc src/ringalloc.c)
 target_include_directories(ringalloc PUBLIC include)
 target_compile_options(ringalloc PRIVATE -ffreestanding)
-target_link_libraries(ringalloc PRIVATE ringalloc_warnings)
+target_link_libraries(ringalloc PRIVATE ringalloc_warnings ringalloc_sanitize)
 
 option(RINGALLOC_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
 option(RINGALLOC_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})

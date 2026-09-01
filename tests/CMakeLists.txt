@@ -16,6 +16,6 @@ FetchContent_MakeAvailable(cgreen)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(test_ringalloc ringalloc.c)
-target_link_libraries(test_ringalloc PRIVATE ringalloc ringalloc_warnings cgreen_static)
+target_link_libraries(test_ringalloc PRIVATE ringalloc ringalloc_warnings ringalloc_sanitize cgreen_static)
 target_include_directories(test_ringalloc SYSTEM PRIVATE ${cgreen_SOURCE_DIR}/include)
 add_test(NAME ringalloc COMMAND test_ringalloc)
