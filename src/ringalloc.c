@@ -105,9 +105,10 @@ static size_t align_padding_at(const void *address, size_t alignment) {
 }
 
 static size_t space_between(const unsigned char *start, const unsigned char *end) {
-  ptrdiff_t span = end - start;
-  if (span <= 0) return 0;
-  return (size_t)span;
+  uintptr_t start_address = (uintptr_t)start;
+  uintptr_t end_address = (uintptr_t)end;
+  if (end_address <= start_address) return 0;
+  return (size_t)(end_address - start_address);
 }
 
 static struct frame_layout frame_layout(size_t payload_size) {

@@ -1,7 +1,7 @@
 # Ringalloc
 
-Caller buffer. Ring of variable-size allocations. Free oldest, reallocate newest.
-For a stream of items that are freed in allocation order.
+Caller buffer. Ring of variable-size allocations.
+For a stream of items that are freed in allocation order. API in include/ringalloc.h.
 
 Wrap when the next allocation or reallocation does not fit at the end and the start has room.
 Leftover at the end stays unused until wrap is cleared.
