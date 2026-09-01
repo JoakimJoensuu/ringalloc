@@ -87,4 +87,4 @@ A body describes or reasons the change when that is needed. Otherwise
 leave it empty.
 
 An open PR's title and body describe the current diff, not an earlier
-one. Agents ask before updating them; see AGENTS.md.
+one.
