@@ -360,7 +360,7 @@ Ensure(reallocate_sole_block_fills_buffer) {
   }
   assert_that(filled, is_non_null);
   assert_that(filled, is_not_equal_to(sole));
-  assert_that(((unsigned char *)filled)[0], is_equal_to(FILL_A));
+  assert_that(filled[0], is_equal_to(FILL_A));
   assert_that(ra_allocate(allocator, 1), is_null);
 }
 

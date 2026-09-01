@@ -17,8 +17,8 @@ reflect byte alignment.
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
-CMake fetches [cgreen](https://github.com/cgreen-devs/cgreen) when tests are on.
-Examples and tests default off when this project is not the CMake top level.
+See [CMakeLists.txt](CMakeLists.txt) and [tests/CMakeLists.txt](tests/CMakeLists.txt) for
+options and dependencies.
 
 ## Style
 
