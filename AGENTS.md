@@ -46,7 +46,7 @@ above. If files contradict themselves or each other, flag that too.
 
 ## After changes to source code
 
-Run and pass the checks in [README.md](README.md#style).
+Run and pass any checks those documents describe for changed source.
 
 ## Commits and pull requests
 
