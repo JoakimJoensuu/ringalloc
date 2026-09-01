@@ -46,8 +46,7 @@ above. If files contradict themselves or each other, flag that too.
 
 ## After changes to source code
 
-Run and pass any checks described in CONVENTIONS.md, README.md, or the
-linked configs.
+Run and pass any checks described in documentation or configs.
 
 ## Commits and pull requests
 
