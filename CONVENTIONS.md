@@ -9,9 +9,14 @@ Library source is ISO C23. No extensions.
 Cast only when there is no implicit conversion, and only when that is the
 most readable way.
 
+Parenthesize sizeof operands, even when the grammar allows omitting
+them.
+
 ## Writing
 
 Keep it short. Commit and PR titles too.
+
+No em dashes.
 
 Blank line between logical groups.
 
@@ -82,4 +87,4 @@ A body describes or reasons the change when that is needed. Otherwise
 leave it empty.
 
 An open PR's title and body describe the current diff, not an earlier
-one. Update them when the files change.
+one. Keep them up to date.

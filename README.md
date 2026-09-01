@@ -1,7 +1,7 @@
 # Ringalloc
 
 Caller buffer. Ring of variable-size allocations.
-For a stream of items that are freed in allocation order. API in include/ringalloc.h.
+For a stream of items that are freed in allocation order. API in [include/ringalloc.h](include/ringalloc.h).
 
 Wrap when the next allocation or reallocation does not fit at the end and the start has room.
 Leftover at the end stays unused until wrap is cleared.
@@ -22,7 +22,12 @@ options and dependencies.
 
 ## Style
 
+Run the [build](#build) step first when `compile_commands.json` is missing or stale.
+
 `--experimental-custom-checks` is required for `CustomChecks` in `.clang-tidy`.
+
+To fix formatting, rerun the clang-format command below with `-i` in place of
+`--dry-run --Werror`.
 
 ```sh
 clang-format-23 --dry-run --Werror $(find include src examples tests -type f -name '*.[ch]' | sort)
