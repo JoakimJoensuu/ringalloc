@@ -39,7 +39,7 @@ If something existing contradicts a convention, the existing thing is
 wrong. Do not change the convention to match. Propose a fix as described
 above. If files contradict themselves or each other, flag that too.
 
-## After C changes
+## After changes to source code
 
 Run the Style checks in [README.md](README.md) after editing any `.c` or
 `.h` file. Run `cmake -B build` first when `compile_commands.json` is
