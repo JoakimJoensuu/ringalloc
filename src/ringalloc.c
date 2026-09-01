@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 struct header {
@@ -99,13 +100,14 @@ static size_t align_padding(size_t position, size_t alignment) {
 }
 
 static size_t align_padding_at(const void *address, size_t alignment) {
-  // alignof exists; align_up does not. Pointer to size_t is implementation-defined.
-  return align_padding((size_t)address, alignment);
+  uintptr_t mask = alignment - 1U;
+  return (size_t)((alignment - ((uintptr_t)address & mask)) & mask);
 }
 
 static size_t space_between(const unsigned char *start, const unsigned char *end) {
-  if (start > end) return 0;
-  return (size_t)(end - start);
+  ptrdiff_t span = end - start;
+  if (span <= 0) return 0;
+  return (size_t)span;
 }
 
 static struct frame_layout frame_layout(size_t payload_size) {
