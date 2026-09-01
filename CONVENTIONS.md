@@ -9,8 +9,7 @@ Library source is ISO C23. No extensions.
 Cast only when there is no implicit conversion, and only when that is the
 most readable way.
 
-Parenthesize operands of compile-time unary operators — sizeof,
-alignof, typeof — even when the grammar allows omitting them.
+Parenthesize the operand of sizeof.
 
 ## Writing
 
