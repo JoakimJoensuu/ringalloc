@@ -1,6 +1,6 @@
 # Agents
 
-## Conventions
+## Documentation and configs
 
 Read and follow:
 - [CONVENTIONS.md](CONVENTIONS.md)
