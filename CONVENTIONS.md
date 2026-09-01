@@ -9,6 +9,8 @@ Library source is ISO C23. No extensions.
 Cast only when there is no implicit conversion, and only when that is the
 most readable way.
 
+Parenthesize the operand of sizeof.
+
 ## Writing
 
 Keep it short. Commit and PR titles too.
