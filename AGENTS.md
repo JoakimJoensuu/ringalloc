@@ -46,7 +46,7 @@ above. If files contradict themselves or each other, flag that too.
 
 ## After changes to source code
 
-Run the Style checks in [README.md](README.md) after editing any `.c` or
+Run the checks in [README.md](README.md#style) after editing any `.c` or
 `.h` file. Run `cmake -B build` first when `compile_commands.json` is
 missing or stale. Apply `clang-format-23 -i` to fix formatting before the
 dry run passes.
