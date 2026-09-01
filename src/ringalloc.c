@@ -201,7 +201,7 @@ static size_t minimum(size_t left, size_t right) {
   return left < right ? left : right;
 }
 
-struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity) {
+struct ringalloc *ra_create(unsigned char *buffer, size_t capacity) {
   if (buffer == nullptr) unreachable();
 
   size_t state_padding = align_padding_at(buffer, alignof(struct ringalloc));

@@ -8,7 +8,7 @@ struct ringalloc;
 /**
  * @return Allocator in @p buffer, or nullptr if @p buffer is too small.
  */
-struct ringalloc *ra_initialize(unsigned char *buffer, size_t capacity);
+struct ringalloc *ra_create(unsigned char *buffer, size_t capacity);
 
 /**
  * @return Address of newly allocated block, suitably aligned for any object with

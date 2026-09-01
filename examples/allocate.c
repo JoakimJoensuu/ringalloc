@@ -5,7 +5,7 @@
 
 int main() {
   unsigned char storage[BUFSIZ];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
 
   if (allocator == nullptr) return 1;
   char *hello = ra_allocate(allocator, sizeof("hello"));
