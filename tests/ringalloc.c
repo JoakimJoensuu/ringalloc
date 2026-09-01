@@ -35,7 +35,7 @@ static bool is_max_aligned(void *address) {
 
 Ensure(allocate_zero) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   void *zero = nullptr;
 
   assert_that(allocator, is_non_null);
@@ -46,7 +46,7 @@ Ensure(allocate_zero) {
 
 Ensure(reallocate_zero) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *block = nullptr;
   assert_that(allocator, is_non_null);
   block = ra_allocate(allocator, SMALL_SIZE);
@@ -58,7 +58,7 @@ Ensure(reallocate_zero) {
 
 Ensure(free_null) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
 
@@ -72,30 +72,30 @@ Ensure(free_null) {
   assert_that(second, is_non_null);
 }
 
-Ensure(initialize_too_small) {
+Ensure(create_too_small) {
   unsigned char storage[TINY_LENGTH];
-  assert_that(ra_initialize(storage, sizeof(storage)), is_null);
+  assert_that(ra_create(storage, sizeof(storage)), is_null);
 }
 
-Ensure(initialize_smallest) {
+Ensure(create_smallest) {
   unsigned char storage[STORAGE_LENGTH];
   size_t capacity = 0;
   struct ringalloc *allocator = nullptr;
 
   for (; capacity <= sizeof(storage); capacity += 1) {
-    allocator = ra_initialize(storage, capacity);
+    allocator = ra_create(storage, capacity);
     if (allocator != nullptr) break;
   }
   assert_that(allocator, is_non_null);
   assert_that(ra_allocate(allocator, 0), is_null);
   assert_that(ra_allocate(allocator, SMALL_SIZE), is_null);
   assert_that(capacity, is_greater_than(0));
-  assert_that(ra_initialize(storage, capacity - 1), is_null);
+  assert_that(ra_create(storage, capacity - 1), is_null);
 }
 
-Ensure(initialize_unaligned) {
+Ensure(create_unaligned) {
   alignas(max_align_t) unsigned char storage[STORAGE_LENGTH + MISALIGNMENT];
-  struct ringalloc *allocator = ra_initialize(storage + MISALIGNMENT, STORAGE_LENGTH);
+  struct ringalloc *allocator = ra_create(storage + MISALIGNMENT, STORAGE_LENGTH);
 
   assert_that(allocator, is_non_null);
   assert_that(ra_allocate(allocator, SMALL_SIZE), is_non_null);
@@ -103,7 +103,7 @@ Ensure(initialize_unaligned) {
 
 Ensure(allocate_aligned) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   void *first = nullptr;
   void *second = nullptr;
 
@@ -118,7 +118,7 @@ Ensure(allocate_aligned) {
 
 Ensure(allocate_odd_sizes) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *third = nullptr;
@@ -135,18 +135,18 @@ Ensure(allocate_odd_sizes) {
   assert_that(second, is_not_equal_to(third));
 }
 
-Ensure(initialize_zero_ring) {
+Ensure(create_zero_ring) {
   alignas(max_align_t) unsigned char storage[STORAGE_LENGTH + MISALIGNMENT];
   unsigned char *buffer = storage + MISALIGNMENT;
   struct ringalloc *allocator = nullptr;
   size_t capacity = 0;
 
   for (; capacity <= STORAGE_LENGTH; capacity += 1) {
-    allocator = ra_initialize(buffer, capacity);
+    allocator = ra_create(buffer, capacity);
     if (allocator == nullptr) continue;
     if (ra_allocate(allocator, SMALL_SIZE) == nullptr) continue;
     assert_that(capacity, is_greater_than(1));
-    allocator = ra_initialize(buffer, capacity - 1);
+    allocator = ra_create(buffer, capacity - 1);
     assert_that(allocator, is_non_null);
     assert_that(ra_allocate(allocator, SMALL_SIZE), is_null);
     return;
@@ -156,7 +156,7 @@ Ensure(initialize_zero_ring) {
 
 Ensure(allocate_and_free_oldest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char expect[SMALL_SIZE];
@@ -178,7 +178,7 @@ Ensure(allocate_and_free_oldest) {
 
 Ensure(reallocate_newest_only) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *grown = nullptr;
@@ -201,7 +201,7 @@ Ensure(reallocate_newest_only) {
 
 Ensure(reallocate_failure_keeps_content) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char expect[SMALL_SIZE];
@@ -219,7 +219,7 @@ Ensure(reallocate_failure_keeps_content) {
 
 Ensure(reallocate_shrink_then_grow) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *block = nullptr;
   unsigned char expect[SMALL_SIZE];
 
@@ -236,7 +236,7 @@ Ensure(reallocate_shrink_then_grow) {
 
 Ensure(wrap_reuses_oldest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *wrapped = nullptr;
@@ -263,7 +263,7 @@ Ensure(wrap_reuses_oldest) {
 
 Ensure(wrap_keeps_alignment) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *wrapped = nullptr;
@@ -283,7 +283,7 @@ Ensure(wrap_keeps_alignment) {
 
 Ensure(reallocate_wrapped_newest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *wrapped = nullptr;
@@ -306,7 +306,7 @@ Ensure(reallocate_wrapped_newest) {
 
 Ensure(reallocate_wraps_newest) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *first = nullptr;
   unsigned char *newest = nullptr;
   unsigned char *moved = nullptr;
@@ -332,7 +332,7 @@ Ensure(reallocate_wraps_newest) {
 
 Ensure(reallocate_sole_block_fills_buffer) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   unsigned char *blocks[BLOCK_COUNT];
   unsigned char *sole = nullptr;
   unsigned char *filled = nullptr;
@@ -376,7 +376,7 @@ Ensure(reallocate_wraps_only_live) {
   bool wrapped = false;
 
   for (; capacity <= sizeof(storage); capacity += 1) {
-    allocator = ra_initialize(storage, capacity);
+    allocator = ra_create(storage, capacity);
     if (allocator == nullptr) continue;
 
     first = ra_allocate(allocator, BLOCK_SIZE);
@@ -399,7 +399,7 @@ Ensure(reallocate_wraps_only_live) {
 
 Ensure(reset_drops_live) {
   unsigned char storage[STORAGE_LENGTH];
-  struct ringalloc *allocator = ra_initialize(storage, sizeof(storage));
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   size_t count = 0;
   size_t again = 0;
 
@@ -417,10 +417,10 @@ Ensure(reset_drops_live) {
 
 int main() {
   auto suite = create_test_suite();
-  add_test(suite, initialize_too_small);
-  add_test(suite, initialize_smallest);
-  add_test(suite, initialize_unaligned);
-  add_test(suite, initialize_zero_ring);
+  add_test(suite, create_too_small);
+  add_test(suite, create_smallest);
+  add_test(suite, create_unaligned);
+  add_test(suite, create_zero_ring);
   add_test(suite, allocate_zero);
   add_test(suite, allocate_aligned);
   add_test(suite, allocate_odd_sizes);
