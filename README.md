@@ -22,14 +22,13 @@ options and dependencies.
 
 ## Style
 
-Configure the build first when `compile_commands.json` is missing or stale.
+Run the [build](#build) step first when `compile_commands.json` is missing or stale.
 
 `--experimental-custom-checks` is required for `CustomChecks` in `.clang-tidy`.
 
 Apply `clang-format-23 -i` to fix formatting before the dry run passes.
 
 ```sh
-cmake -B build
 clang-format-23 --dry-run --Werror $(find include src examples tests -type f -name '*.[ch]' | sort)
 clang-tidy-23 --experimental-custom-checks $(jq -r '.[].file' compile_commands.json)
 ```

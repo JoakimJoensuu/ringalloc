@@ -21,7 +21,7 @@ target_compile_options(
             -Wmissing-prototypes
             -Wshadow
             -Wstrict-prototypes)
-if(PROJECT_IS_TOP_LEVEL)
+if(PROJECT_IS_TOP_LEVEL AND (CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU"))
   target_compile_options(ringalloc_warnings INTERFACE -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
   target_link_options(ringalloc_warnings INTERFACE -fsanitize=address,undefined)
 endif()

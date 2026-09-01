@@ -9,8 +9,8 @@ Library source is ISO C23. No extensions.
 Cast only when there is no implicit conversion, and only when that is the
 most readable way.
 
-Parenthesize operands of compile-time unary operators (sizeof,
-alignof, typeof), even when the grammar allows omitting them.
+Parenthesize sizeof operands, even when the grammar allows omitting
+them.
 
 ## Writing
 
@@ -87,4 +87,4 @@ A body describes or reasons the change when that is needed. Otherwise
 leave it empty.
 
 An open PR's title and body describe the current diff, not an earlier
-one. Update them when the files change.
+one. Agents ask before updating them; see AGENTS.md.
