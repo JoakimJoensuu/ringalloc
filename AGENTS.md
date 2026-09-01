@@ -39,6 +39,13 @@ If something existing contradicts a convention, the existing thing is
 wrong. Do not change the convention to match. Propose a fix as described
 above. If files contradict themselves or each other, flag that too.
 
+## After C changes
+
+Run the Style checks in [README.md](README.md) after editing any `.c` or
+`.h` file. Run `cmake -B build` first when `compile_commands.json` is
+missing or stale. Apply `clang-format-23 -i` to fix formatting before the
+dry run passes.
+
 ## Commits and pull requests
 
 Do not attribute a commit or pull request to a tool or agent.
