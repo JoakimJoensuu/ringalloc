@@ -22,7 +22,7 @@ target_compile_options(
             -Wshadow
             -Wstrict-prototypes)
 if(PROJECT_IS_TOP_LEVEL)
-  target_compile_options(ringalloc_warnings INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_compile_options(ringalloc_warnings INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all)
   target_link_options(ringalloc_warnings INTERFACE -fsanitize=address,undefined)
 endif()
 
