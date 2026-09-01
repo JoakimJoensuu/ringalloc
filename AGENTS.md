@@ -21,6 +21,11 @@ we write it, in wording another repository could reuse. A correction counts
 when it is how that kind of thing should always be done. One instance
 is enough to propose.
 
+The same applies when the task itself reveals a gap: if you had to follow
+a practice that README, CONVENTIONS, or AGENTS does not yet say, propose
+an update. Do not wait for the user to ask. Put commands in README,
+maintainer rules in CONVENTIONS, agent workflow in AGENTS.
+
 ### Proposing a change
 
 Every change to these documents needs approval first: a new convention, a
