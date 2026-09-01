@@ -197,7 +197,7 @@ static bool can_reallocate_at_base(const struct ringalloc *allocator, size_t pay
   return frame_layout_fits(frame_layout(payload_size), room);
 }
 
-static size_t min(size_t left, size_t right) {
+static size_t minimum(size_t left, size_t right) {
   return left < right ? left : right;
 }
 
@@ -286,7 +286,7 @@ void *ra_reallocate(struct ringalloc *allocator, void *allocation, size_t size) 
   if (!can_reallocate_at_base(&state, size)) return nullptr;
 
   unsigned char *old_start = last.start;
-  size_t copy_length = min(size, last.layout.payload_size);
+  size_t copy_length = minimum(size, last.layout.payload_size);
 
   if (has_one_frame(&state)) {
     state.first = state.base;
