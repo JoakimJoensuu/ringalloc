@@ -2,6 +2,7 @@
 
 #include <cgreen/assertions.h>
 #include <cgreen/constraint_syntax_helpers.h>
+#include <cgreen/reporter.h>
 #include <cgreen/runner.h>
 #include <cgreen/suite.h>
 #include <cgreen/text_reporter.h>
@@ -436,5 +437,9 @@ int main() {
   add_test(suite, reallocate_wraps_only_live);
   add_test(suite, free_null);
   add_test(suite, reset_drops_live);
-  return run_test_suite(suite, create_text_reporter());
+  auto reporter = create_text_reporter();
+  int result = run_test_suite(suite, reporter);
+  destroy_test_suite(suite);
+  destroy_reporter(reporter);
+  return result;
 }
