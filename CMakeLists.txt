@@ -21,6 +21,10 @@ target_compile_options(
             -Wmissing-prototypes
             -Wshadow
             -Wstrict-prototypes)
+if(PROJECT_IS_TOP_LEVEL)
+  target_compile_options(ringalloc_warnings INTERFACE -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_link_options(ringalloc_warnings INTERFACE -fsanitize=address,undefined)
+endif()
 
 add_library(ringalloc src/ringalloc.c)
 target_include_directories(ringalloc PUBLIC include)
