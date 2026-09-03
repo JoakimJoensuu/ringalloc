@@ -29,6 +29,7 @@ endif()
 
 add_library(ringalloc src/ringalloc.c)
 target_include_directories(ringalloc PUBLIC include)
+target_compile_features(ringalloc PUBLIC c_std_23)
 target_compile_options(ringalloc PRIVATE -ffreestanding)
 target_link_libraries(ringalloc PRIVATE ringalloc_warnings ringalloc_sanitize)
 
