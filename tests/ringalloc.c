@@ -421,9 +421,10 @@ Ensure(free_before_keeps_landmark) {
   unsigned char *first = nullptr;
   unsigned char *second = nullptr;
   unsigned char *third = nullptr;
-  unsigned char *kept = nullptr;
-  unsigned char expect_b[SMALL_SIZE];
-  unsigned char expect_c[SMALL_SIZE];
+  unsigned char *reclaimed = nullptr;
+  unsigned char *again = nullptr;
+  unsigned char expect[SMALL_SIZE];
+  size_t filled = 0;
 
   assert_that(allocator, is_non_null);
   first = ra_allocate(allocator, SMALL_SIZE);
@@ -432,20 +433,22 @@ Ensure(free_before_keeps_landmark) {
   assert_that(first, is_non_null);
   assert_that(second, is_non_null);
   assert_that(third, is_non_null);
-  memset(second, FILL_B, SMALL_SIZE);
   memset(third, FILL_C, SMALL_SIZE);
-  memset(expect_b, FILL_B, SMALL_SIZE);
-  memset(expect_c, FILL_C, SMALL_SIZE);
+  memset(expect, FILL_C, SMALL_SIZE);
+  while (ra_allocate(allocator, SMALL_SIZE) != nullptr) {
+    filled += 1;
+  }
+  assert_that(filled, is_greater_than(0));
+  assert_that(ra_allocate(allocator, SMALL_SIZE), is_null);
 
-  ra_free_before(allocator, second);
-  assert_that(memcmp(second, expect_b, SMALL_SIZE), is_equal_to(0));
-  assert_that(memcmp(third, expect_c, SMALL_SIZE), is_equal_to(0));
+  ra_free_before(allocator, third);
+  assert_that(memcmp(third, expect, SMALL_SIZE), is_equal_to(0));
 
-  kept = ra_allocate(allocator, SMALL_SIZE);
-  assert_that(kept, is_non_null);
-  ra_free(allocator, second);
-  ra_free(allocator, third);
-  ra_free(allocator, kept);
+  reclaimed = ra_allocate(allocator, SMALL_SIZE);
+  again = ra_allocate(allocator, SMALL_SIZE);
+  assert_that(reclaimed, is_non_null);
+  assert_that(again, is_non_null);
+  assert_that(memcmp(third, expect, SMALL_SIZE), is_equal_to(0));
 }
 
 Ensure(free_before_already_oldest) {
