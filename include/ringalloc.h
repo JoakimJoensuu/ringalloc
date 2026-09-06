@@ -37,10 +37,10 @@ void ra_free(struct ringalloc *allocator, void *allocation);
 /**
  * No-op if @p allocation is already the oldest live block.
  *
- * @param allocation Must be a live allocation
- *
  * Frees every allocation older than @p allocation. @p allocation and any newer
  * allocations remain.
+ *
+ * @param allocation Must be a live allocation
  */
 void ra_free_before(struct ringalloc *allocator, void *allocation);
 
