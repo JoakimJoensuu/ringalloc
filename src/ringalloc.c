@@ -233,16 +233,22 @@ void ra_free_before(struct ringalloc *allocator, void *allocation) {
   if (allocator == nullptr) unreachable();
   if (allocation == nullptr) unreachable();
 
-  for (;;) {
-    struct ringalloc state = load_state(allocator);
-    if (state.empty) unreachable();
+  struct ringalloc state = load_state(allocator);
+  if (state.empty) unreachable();
 
+  for (;;) {
     struct frame first = existing_frame(state.first);
-    void *oldest = payload_address(first);
-    if (oldest == allocation) {
+    if (allocation == payload_address(first)) {
+      store_state(allocator, &state);
       return;
     }
-    ra_free(allocator, oldest);
+    if (has_one_frame(&state)) unreachable();
+
+    state.first += frame_size(first.layout);
+    if (has_wrapped(&state) && state.first == state.wrap) {
+      state.first = state.base;
+      state.wrap = nullptr;
+    }
   }
 }
 
