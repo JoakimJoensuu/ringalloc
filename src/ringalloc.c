@@ -229,7 +229,24 @@ struct ringalloc *ra_create(unsigned char *buffer, size_t capacity) {
   return allocator;
 }
 
-void ra_reset(struct ringalloc *allocator) {
+void ra_free_before(struct ringalloc *allocator, void *allocation) {
+  if (allocator == nullptr) unreachable();
+  if (allocation == nullptr) unreachable();
+
+  for (;;) {
+    struct ringalloc state = load_state(allocator);
+    if (state.empty) unreachable();
+
+    struct frame first = existing_frame(state.first);
+    void *oldest = payload_address(first);
+    if (oldest == allocation) {
+      return;
+    }
+    ra_free(allocator, oldest);
+  }
+}
+
+void ra_free_all(struct ringalloc *allocator) {
   if (allocator == nullptr) unreachable();
 
   struct ringalloc state = load_state(allocator);
@@ -314,7 +331,7 @@ void ra_free(struct ringalloc *allocator, void *allocation) {
   if (allocation != payload_address(first)) unreachable();
 
   if (has_one_frame(&state)) {
-    ra_reset(allocator);
+    ra_free_all(allocator);
     return;
   }
 

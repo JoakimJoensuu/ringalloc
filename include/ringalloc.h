@@ -35,8 +35,18 @@ void *ra_reallocate(struct ringalloc *allocator, void *allocation, size_t size);
 void ra_free(struct ringalloc *allocator, void *allocation);
 
 /**
- * Drops all allocations.
+ * No-op if @p allocation is already the oldest live block.
+ *
+ * @param allocation Must be a live allocation
+ *
+ * Frees every allocation older than @p allocation. @p allocation and any newer
+ * allocations remain.
  */
-void ra_reset(struct ringalloc *allocator);
+void ra_free_before(struct ringalloc *allocator, void *allocation);
+
+/**
+ * Frees every live allocation.
+ */
+void ra_free_all(struct ringalloc *allocator);
 
 #endif /* RINGALLOC_H */
