@@ -468,7 +468,6 @@ Ensure(free_before_already_oldest) {
   ra_free(allocator, second);
 }
 
-
 Ensure(free_before_wrapped_landmark) {
   unsigned char storage[STORAGE_LENGTH];
   struct ringalloc *allocator = ra_create(storage, sizeof(storage));
