@@ -468,6 +468,49 @@ Ensure(free_before_already_oldest) {
   ra_free(allocator, second);
 }
 
+Ensure(free_before_keeps_wrap_for_upper_landmark) {
+  unsigned char storage[STORAGE_LENGTH];
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
+  unsigned char *first = nullptr;
+  unsigned char *second = nullptr;
+  unsigned char *landmark = nullptr;
+  unsigned char *wrapped = nullptr;
+  unsigned char expect_landmark[SMALL_SIZE];
+  unsigned char expect_wrapped[BLOCK_SIZE];
+  size_t filled = 0;
+
+  assert_that(allocator, is_non_null);
+  first = ra_allocate(allocator, BLOCK_SIZE);
+  second = ra_allocate(allocator, SMALL_SIZE);
+  landmark = ra_allocate(allocator, SMALL_SIZE);
+  assert_that(first, is_non_null);
+  assert_that(second, is_non_null);
+  assert_that(landmark, is_non_null);
+  memset(second, FILL_A, SMALL_SIZE);
+  memset(landmark, FILL_B, SMALL_SIZE);
+  while (ra_allocate(allocator, SMALL_SIZE) != nullptr) {
+  }
+  assert_that(ra_allocate(allocator, SMALL_SIZE), is_null);
+
+  ra_free(allocator, first);
+  wrapped = ra_allocate(allocator, BLOCK_SIZE);
+  assert_that(wrapped, is_equal_to(first));
+  memset(wrapped, FILL_C, BLOCK_SIZE);
+  memset(expect_landmark, FILL_B, SMALL_SIZE);
+  memset(expect_wrapped, FILL_C, BLOCK_SIZE);
+
+  ra_free_before(allocator, landmark);
+  assert_that(memcmp(landmark, expect_landmark, SMALL_SIZE), is_equal_to(0));
+  assert_that(memcmp(wrapped, expect_wrapped, BLOCK_SIZE), is_equal_to(0));
+
+  while (ra_allocate(allocator, SMALL_SIZE) != nullptr) {
+    filled += 1;
+  }
+  assert_that(filled, is_greater_than(0));
+  assert_that(memcmp(landmark, expect_landmark, SMALL_SIZE), is_equal_to(0));
+  assert_that(memcmp(wrapped, expect_wrapped, BLOCK_SIZE), is_equal_to(0));
+}
+
 Ensure(free_before_wrapped_landmark) {
   unsigned char storage[STORAGE_LENGTH];
   struct ringalloc *allocator = ra_create(storage, sizeof(storage));
@@ -525,6 +568,7 @@ int main() {
   add_test(suite, free_all_drops_live);
   add_test(suite, free_before_keeps_landmark);
   add_test(suite, free_before_already_oldest);
+  add_test(suite, free_before_keeps_wrap_for_upper_landmark);
   add_test(suite, free_before_wrapped_landmark);
   auto reporter = create_text_reporter();
   int result = run_test_suite(suite, reporter);

@@ -229,38 +229,26 @@ struct ringalloc *ra_create(unsigned char *buffer, size_t capacity) {
   return allocator;
 }
 
-static bool is_live_allocation(struct ringalloc state, void *allocation) {
-  if (state.empty) return false;
-
-  for (;;) {
-    struct frame first = existing_frame(state.first);
-    if (allocation == payload_address(first)) return true;
-    if (has_one_frame(&state)) return false;
-
-    state.first += frame_size(first.layout);
-    if (has_wrapped(&state) && state.first == state.wrap) {
-      state.first = state.base;
-      state.wrap = nullptr;
-    }
-  }
-}
-
 void ra_free_before(struct ringalloc *allocator, void *allocation) {
   if (allocator == nullptr) unreachable();
   if (allocation == nullptr) unreachable();
 
   struct ringalloc state = load_state(allocator);
-  if (!is_live_allocation(state, allocation)) unreachable();
+  if (state.empty) unreachable();
 
-  for (struct frame first = existing_frame(state.first); allocation != payload_address(first);
-       first = existing_frame(state.first)) {
+  for (struct frame first = existing_frame(state.first);; first = existing_frame(state.first)) {
+    if (allocation == payload_address(first)) {
+      store_state(allocator, &state);
+      return;
+    }
+    if (has_one_frame(&state)) unreachable();
+
     state.first += frame_size(first.layout);
     if (has_wrapped(&state) && state.first == state.wrap) {
       state.first = state.base;
       state.wrap = nullptr;
     }
   }
-  store_state(allocator, &state);
 }
 
 void ra_free_all(struct ringalloc *allocator) {
