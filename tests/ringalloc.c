@@ -397,7 +397,7 @@ Ensure(reallocate_wraps_only_live) {
   assert_that(memcmp(moved, expect, sizeof(expect)), is_equal_to(0));
 }
 
-Ensure(reset_drops_live) {
+Ensure(free_all_drops_live) {
   unsigned char storage[STORAGE_LENGTH];
   struct ringalloc *allocator = ra_create(storage, sizeof(storage));
   size_t count = 0;
@@ -408,11 +408,143 @@ Ensure(reset_drops_live) {
     count++;
   }
   assert_that(count, is_greater_than(0));
-  ra_reset(allocator);
+  ra_free_all(allocator);
   while (ra_allocate(allocator, SMALL_SIZE) != nullptr) {
     again++;
   }
   assert_that(again, is_equal_to(count));
+}
+
+Ensure(free_before_keeps_landmark) {
+  unsigned char storage[STORAGE_LENGTH];
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
+  unsigned char *first = nullptr;
+  unsigned char *second = nullptr;
+  unsigned char *third = nullptr;
+  unsigned char *reclaimed = nullptr;
+  unsigned char *again = nullptr;
+  unsigned char expect[SMALL_SIZE];
+  size_t filled = 0;
+
+  assert_that(allocator, is_non_null);
+  first = ra_allocate(allocator, SMALL_SIZE);
+  second = ra_allocate(allocator, SMALL_SIZE);
+  third = ra_allocate(allocator, SMALL_SIZE);
+  assert_that(first, is_non_null);
+  assert_that(second, is_non_null);
+  assert_that(third, is_non_null);
+  memset(third, FILL_C, SMALL_SIZE);
+  memset(expect, FILL_C, SMALL_SIZE);
+  while (ra_allocate(allocator, SMALL_SIZE) != nullptr) {
+    filled += 1;
+  }
+  assert_that(filled, is_greater_than(0));
+  assert_that(ra_allocate(allocator, SMALL_SIZE), is_null);
+
+  ra_free_before(allocator, third);
+  assert_that(memcmp(third, expect, SMALL_SIZE), is_equal_to(0));
+
+  reclaimed = ra_allocate(allocator, SMALL_SIZE);
+  again = ra_allocate(allocator, SMALL_SIZE);
+  assert_that(reclaimed, is_non_null);
+  assert_that(again, is_non_null);
+  assert_that(memcmp(third, expect, SMALL_SIZE), is_equal_to(0));
+}
+
+Ensure(free_before_already_oldest) {
+  unsigned char storage[STORAGE_LENGTH];
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
+  unsigned char *first = nullptr;
+  unsigned char *second = nullptr;
+  unsigned char expect[SMALL_SIZE];
+
+  assert_that(allocator, is_non_null);
+  first = ra_allocate(allocator, SMALL_SIZE);
+  second = ra_allocate(allocator, SMALL_SIZE);
+  assert_that(first, is_non_null);
+  assert_that(second, is_non_null);
+  memset(first, FILL_A, SMALL_SIZE);
+  memset(expect, FILL_A, SMALL_SIZE);
+  ra_free_before(allocator, first);
+  assert_that(memcmp(first, expect, SMALL_SIZE), is_equal_to(0));
+  ra_free(allocator, first);
+  ra_free(allocator, second);
+}
+
+Ensure(free_before_keeps_wrap_for_upper_landmark) {
+  unsigned char storage[STORAGE_LENGTH];
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
+  unsigned char *first = nullptr;
+  unsigned char *second = nullptr;
+  unsigned char *landmark = nullptr;
+  unsigned char *wrapped = nullptr;
+  unsigned char expect_landmark[SMALL_SIZE];
+  unsigned char expect_wrapped[BLOCK_SIZE];
+  size_t filled = 0;
+
+  assert_that(allocator, is_non_null);
+  first = ra_allocate(allocator, BLOCK_SIZE);
+  second = ra_allocate(allocator, SMALL_SIZE);
+  landmark = ra_allocate(allocator, SMALL_SIZE);
+  assert_that(first, is_non_null);
+  assert_that(second, is_non_null);
+  assert_that(landmark, is_non_null);
+  memset(second, FILL_A, SMALL_SIZE);
+  memset(landmark, FILL_B, SMALL_SIZE);
+  while (ra_allocate(allocator, SMALL_SIZE) != nullptr) {
+  }
+  assert_that(ra_allocate(allocator, SMALL_SIZE), is_null);
+
+  ra_free(allocator, first);
+  wrapped = ra_allocate(allocator, BLOCK_SIZE);
+  assert_that(wrapped, is_equal_to(first));
+  memset(wrapped, FILL_C, BLOCK_SIZE);
+  memset(expect_landmark, FILL_B, SMALL_SIZE);
+  memset(expect_wrapped, FILL_C, BLOCK_SIZE);
+
+  ra_free_before(allocator, landmark);
+  assert_that(memcmp(landmark, expect_landmark, SMALL_SIZE), is_equal_to(0));
+  assert_that(memcmp(wrapped, expect_wrapped, BLOCK_SIZE), is_equal_to(0));
+
+  while (ra_allocate(allocator, SMALL_SIZE) != nullptr) {
+    filled += 1;
+  }
+  assert_that(filled, is_greater_than(0));
+  assert_that(memcmp(landmark, expect_landmark, SMALL_SIZE), is_equal_to(0));
+  assert_that(memcmp(wrapped, expect_wrapped, BLOCK_SIZE), is_equal_to(0));
+}
+
+Ensure(free_before_wrapped_landmark) {
+  unsigned char storage[STORAGE_LENGTH];
+  struct ringalloc *allocator = ra_create(storage, sizeof(storage));
+  unsigned char *first = nullptr;
+  unsigned char *second = nullptr;
+  unsigned char *wrapped = nullptr;
+  unsigned char *after = nullptr;
+  unsigned char expect[BLOCK_SIZE];
+
+  assert_that(allocator, is_non_null);
+  first = ra_allocate(allocator, BLOCK_SIZE);
+  second = ra_allocate(allocator, BLOCK_SIZE);
+  assert_that(first, is_non_null);
+  assert_that(second, is_non_null);
+  memset(first, FILL_A, BLOCK_SIZE);
+  memset(second, FILL_B, BLOCK_SIZE);
+  assert_that(ra_allocate(allocator, BLOCK_SIZE), is_null);
+
+  ra_free(allocator, first);
+  wrapped = ra_allocate(allocator, BLOCK_SIZE);
+  assert_that(wrapped, is_equal_to(first));
+  memset(wrapped, FILL_C, BLOCK_SIZE);
+
+  ra_free_before(allocator, wrapped);
+  memset(expect, FILL_C, sizeof(expect));
+  assert_that(memcmp(wrapped, expect, sizeof(expect)), is_equal_to(0));
+
+  after = ra_allocate(allocator, BLOCK_SIZE);
+  assert_that(after, is_non_null);
+  ra_free(allocator, wrapped);
+  ra_free(allocator, after);
 }
 
 int main() {
@@ -436,7 +568,11 @@ int main() {
   add_test(suite, reallocate_sole_block_fills_buffer);
   add_test(suite, reallocate_wraps_only_live);
   add_test(suite, free_null);
-  add_test(suite, reset_drops_live);
+  add_test(suite, free_all_drops_live);
+  add_test(suite, free_before_keeps_landmark);
+  add_test(suite, free_before_already_oldest);
+  add_test(suite, free_before_keeps_wrap_for_upper_landmark);
+  add_test(suite, free_before_wrapped_landmark);
   auto reporter = create_text_reporter();
   int result = run_test_suite(suite, reporter);
   destroy_test_suite(suite);
