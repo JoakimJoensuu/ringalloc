@@ -229,6 +229,14 @@ struct ringalloc *ra_create(unsigned char *buffer, size_t capacity) {
   return allocator;
 }
 
+static void reset(struct ringalloc *state) {
+  state->first = state->base;
+  state->last = state->base;
+  state->next = state->base;
+  state->wrap = nullptr;
+  state->empty = true;
+}
+
 void ra_free_before(struct ringalloc *allocator, void *allocation) {
   if (allocator == nullptr) unreachable();
   if (allocation == nullptr) unreachable();
@@ -236,11 +244,8 @@ void ra_free_before(struct ringalloc *allocator, void *allocation) {
   struct ringalloc state = load_state(allocator);
   if (state.empty) unreachable();
 
-  for (struct frame first = existing_frame(state.first);; first = existing_frame(state.first)) {
-    if (allocation == payload_address(first)) {
-      store_state(allocator, &state);
-      return;
-    }
+  for (struct frame first = existing_frame(state.first); allocation != payload_address(first);
+       first = existing_frame(state.first)) {
     if (has_one_frame(&state)) unreachable();
 
     state.first += frame_size(first.layout);
@@ -249,17 +254,14 @@ void ra_free_before(struct ringalloc *allocator, void *allocation) {
       state.wrap = nullptr;
     }
   }
+  store_state(allocator, &state);
 }
 
 void ra_free_all(struct ringalloc *allocator) {
   if (allocator == nullptr) unreachable();
 
   struct ringalloc state = load_state(allocator);
-  state.first = state.base;
-  state.last = state.base;
-  state.next = state.base;
-  state.wrap = nullptr;
-  state.empty = true;
+  reset(&state);
   store_state(allocator, &state);
 }
 
@@ -336,7 +338,8 @@ void ra_free(struct ringalloc *allocator, void *allocation) {
   if (allocation != payload_address(first)) unreachable();
 
   if (has_one_frame(&state)) {
-    ra_free_all(allocator);
+    reset(&state);
+    store_state(allocator, &state);
     return;
   }
 
