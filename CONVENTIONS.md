@@ -74,6 +74,9 @@ struct of those fields.
 Pure functions that return a boolean are named as predicates. Other pure
 functions are named as nouns.
 
+Functions with side effects are named for that effect, not for when the
+caller runs them.
+
 A single-use function stays only when its name makes the caller clearer than
 inlining the body.
 
